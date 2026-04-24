@@ -1,6 +1,10 @@
-{ pkgs, lib, config, ... }:
+{ pkgs, lib, config, unstable, ... }:
 
 with pkgs;
+
+let
+  llamaPkg = unstable."llama-cpp".override { cudaSupport = true; };
+in
 {
   users.users.llamacpp = {
     isSystemUser = true;
@@ -32,7 +36,7 @@ with pkgs;
     after = [ "network-online.target" ];
     wantedBy = [ "multi-user.target" ];
     serviceConfig = {
-      ExecStart = "/run/current-system/sw/bin/llama-server --host 0.0.0.0 --port 11434";
+      ExecStart = "${llamaPkg}/bin/llama-server --host 0.0.0.0 --port 11434";
       User = "llamacpp";
       Group = "llamacpp";
       Restart = "always";
