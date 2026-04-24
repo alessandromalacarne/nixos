@@ -96,6 +96,20 @@
           nix flake check --impure --no-write-lock-file path:"$(pwd)"
         '';
       };
+
+      encryptYamlSecrets = pkgs.writeShellApplication {
+        name = "sops-encrypt-yaml-secrets";
+        runtimeInputs = with pkgs; [
+          age
+          coreutils
+          findutils
+          nix
+          sops
+        ];
+        text = ''
+          exec ${./scripts/sops-encrypt-yaml-secrets.sh} "$@"
+        '';
+      };
     in
     {
       formatter.${system} = pkgs.nixfmt-rfc-style;
@@ -131,6 +145,12 @@
           type = "app";
           program = "${localFullCheck}/bin/nix-check-local-full";
           meta.description = "Local full flake check with impure evaluation";
+        };
+
+        sops-encrypt-yaml-secrets = {
+          type = "app";
+          program = "${encryptYamlSecrets}/bin/sops-encrypt-yaml-secrets";
+          meta.description = "Encrypt YAML secrets to .sops files under secrets/";
         };
       };
 
