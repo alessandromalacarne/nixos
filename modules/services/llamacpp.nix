@@ -1,9 +1,16 @@
-{ pkgs, lib, config, unstable, ... }:
+{ pkgs, lib, config, inputs, ... }:
 
 with pkgs;
 
 let
-  llamaPkg = unstable."llama-cpp".override { cudaSupport = true; };
+  llamaBase = if inputs?llama-cpp then (inputs.llama-cpp.packages.${pkgs.system}.cuda or inputs.llama-cpp.packages.${pkgs.system}.default) else pkgs."llama-cpp";
+
+  # Override the package to force CUDA architectures and MMQ codepath for Turing
+  llamaPkg = llamaBase.overrideAttrs (old: let
+    oldFlags = old.cmakeFlags or [];
+  in {
+    cmakeFlags = oldFlags ++ [ "-DCMAKE_CUDA_ARCHITECTURES=61;80" "-DDGGML_CUDA_FORCE_MMQ=ON" ];
+  });
 in
 {
   users.users.llamacpp = {
@@ -14,6 +21,10 @@ in
   };
 
   users.groups.llamacpp = { };
+
+  # Install llama.cpp package so its binaries (llama, llama-cli, llama-server) are
+  # available in the system profile and on PATH.
+  environment.systemPackages = [ llamaPkg ];
 
   # systemd.services.llamacpp = {
   #   description = "llama.cpp Service";

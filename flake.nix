@@ -19,6 +19,9 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     jailed-agents.url = "github:andersonjoseph/jailed-agents";
+    llama-cpp = {
+      url = "github:ggml-org/llama.cpp";
+    };
   };
 
   outputs =
@@ -33,6 +36,7 @@
             config.allowUnfree = true;
           };
         })
+        inputs.llama-cpp.overlays.default
       ];
       pkgs = import nixpkgs {
         inherit system overlays;

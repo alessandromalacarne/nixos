@@ -6,7 +6,6 @@
   config,
   lib,
   pkgs,
-  unstable,
   ...
 }:
 
@@ -262,7 +261,7 @@
 
     nh
     home-manager
-    unstable."llama-cpp".override { cudaSupport = true; }
+
   ];
 
   services.searx = {
