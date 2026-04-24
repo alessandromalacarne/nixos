@@ -1,4 +1,4 @@
-{ pkgs, lib, config, unstable, ... }:
+{ pkgs, lib, config, ... }:
 
 with pkgs;
 {
@@ -25,7 +25,7 @@ with pkgs;
   #   };
   # };
 
-  environment.systemPackages = (config.environment.systemPackages or []) ++ [ unstable."llama-cpp".override { cudaSupport = true; } ];
+
 
   systemd.services.llamacpp = {
     description = "llama.cpp Server";
