@@ -56,6 +56,14 @@
         text = ''
           set -euo pipefail
 
+          scratch_dir="$(mktemp -d)"
+          trap 'rm -rf "$scratch_dir"' EXIT
+          export HOME="$scratch_dir"
+          export XDG_STATE_HOME="$scratch_dir/.local/state"
+          export XDG_CACHE_HOME="$scratch_dir/.cache"
+          export NIX_USER_PROFILE_DIR="$scratch_dir/profiles"
+          mkdir -p "$XDG_STATE_HOME" "$XDG_CACHE_HOME" "$NIX_USER_PROFILE_DIR"
+
           if [ ! -f flake.nix ]; then
             echo "Run this command from the repository root (flake.nix not found)." >&2
             exit 1
@@ -71,6 +79,14 @@
         runtimeInputs = [ pkgs.nix ];
         text = ''
           set -euo pipefail
+
+          scratch_dir="$(mktemp -d)"
+          trap 'rm -rf "$scratch_dir"' EXIT
+          export HOME="$scratch_dir"
+          export XDG_STATE_HOME="$scratch_dir/.local/state"
+          export XDG_CACHE_HOME="$scratch_dir/.cache"
+          export NIX_USER_PROFILE_DIR="$scratch_dir/profiles"
+          mkdir -p "$XDG_STATE_HOME" "$XDG_CACHE_HOME" "$NIX_USER_PROFILE_DIR"
 
           if [ ! -f flake.nix ]; then
             echo "Run this command from the repository root (flake.nix not found)." >&2
@@ -94,6 +110,11 @@
       };
 
       checks.${system}.nix-syntax = pkgs.runCommand "nix-syntax-check" { } ''
+        export HOME="$TMPDIR"
+        export XDG_STATE_HOME="$TMPDIR/.local/state"
+        export XDG_CACHE_HOME="$TMPDIR/.cache"
+        export NIX_USER_PROFILE_DIR="$TMPDIR/profiles"
+        mkdir -p "$XDG_STATE_HOME" "$XDG_CACHE_HOME" "$NIX_USER_PROFILE_DIR"
         ${pkgs.findutils}/bin/find ${self} -maxdepth 1 -name '*.nix' -print0 \
           | ${pkgs.findutils}/bin/xargs -0 -n1 ${pkgs.nix}/bin/nix-instantiate --parse >/dev/null
         touch "$out"
