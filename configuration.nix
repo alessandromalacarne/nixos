@@ -14,7 +14,7 @@
     # Include the results of the hardware scan.
     ./hardware-configuration.nix
     ./modules/hardware/nvidia.nix
-    ./modules/services/ollama.nix
+    ./modules/services/llamacpp.nix
     ./modules/hardware/audio.nix
     ./modules/hardware/virtualization.nix
     ./modules/hardware/bluetooth.nix
