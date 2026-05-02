@@ -19,6 +19,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     jailed-agents.url = "github:andersonjoseph/jailed-agents";
+    llm-agents.url = "github:numtide/llm-agents.nix";
+    antigravity-nix = {
+      url = "github:jacopone/antigravity-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
