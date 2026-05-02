@@ -19,13 +19,38 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     jailed-agents.url = "github:andersonjoseph/jailed-agents";
+    llm-agents.url = "github:numtide/llm-agents.nix";
+    antigravity-nix = {
+      url = "github:jacopone/antigravity-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
     { self, nixpkgs, ... }@inputs:
+    let
+      system = "x86_64-linux";
+      pkgs = import nixpkgs {
+        inherit system;
+        config.allowUnfree = true;
+        overlays = [
+          inputs.oskars-dotfiles.overlays.spotx
+          (final: prev: {
+            unstable = import inputs.nixpkgs-unstable {
+              system = prev.system;
+              config.allowUnfree = true;
+            };
+          })
+        ];
+      };
+    in
     {
+      devShells.${system}.default = import ./modules/services/agents.nix {
+        inherit pkgs inputs;
+      };
+
       nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
-        system = "x86_64-linux";
+        inherit system;
         specialArgs = { inherit inputs; };
         modules = [
           ./configuration.nix
