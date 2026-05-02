@@ -8,3 +8,5 @@ result-*
 # Ignore plaintext secrets
 secrets/*.yaml
 secrets/*.yml
+
+# Keep encrypted .sops files tracked; only ignore plaintext .yaml/.yml

@@ -64,7 +64,9 @@
     "flakes"
   ];
 
+  # Encrypted SOPS source of truth for user secrets.
   sops.defaultSopsFile = ./secrets/users.yaml.sops;
+
   sops.secrets."users/jiwolfsly/initialPassword" = {};
   sops.secrets."users/dummy/initialPassword" = {};
 
