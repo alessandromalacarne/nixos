@@ -1,15 +1,11 @@
-{
-  pkgs,
-  inputs,
-  ...
-}:
+{ pkgs, inputs }:
 
 let
   system = pkgs.stdenv.hostPlatform.system;
   llmAgentsPackages = inputs."llm-agents".packages.${system};
 in
-{
-  environment.systemPackages = [
+pkgs.mkShell {
+  packages = [
     llmAgentsPackages.codex
     llmAgentsPackages.opencode
     llmAgentsPackages.gemini-cli

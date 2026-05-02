@@ -28,9 +28,29 @@
 
   outputs =
     { self, nixpkgs, ... }@inputs:
+    let
+      system = "x86_64-linux";
+      pkgs = import nixpkgs {
+        inherit system;
+        config.allowUnfree = true;
+        overlays = [
+          inputs.oskars-dotfiles.overlays.spotx
+          (final: prev: {
+            unstable = import inputs.nixpkgs-unstable {
+              system = prev.system;
+              config.allowUnfree = true;
+            };
+          })
+        ];
+      };
+    in
     {
+      devShells.${system}.default = import ./modules/services/agents.nix {
+        inherit pkgs inputs;
+      };
+
       nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
-        system = "x86_64-linux";
+        inherit system;
         specialArgs = { inherit inputs; };
         modules = [
           ./configuration.nix
