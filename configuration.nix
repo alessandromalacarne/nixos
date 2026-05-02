@@ -64,8 +64,17 @@
     "flakes"
   ];
 
-  # Encrypted SOPS source of truth for user secrets.
-  sops.defaultSopsFile = ./secrets/users.yaml.sops;
+  # Generate the encrypted SOPS file during the NixOS build so rebuilds stay
+  # in sync with the plaintext source and SOPS creation rules.
+  sops.defaultSopsFile = pkgs.runCommand "users.yaml.sops" {
+    nativeBuildInputs = [ pkgs.sops ];
+    src = ./secrets/users.yaml;
+  } ''
+    set -eu
+
+    cp ${./.sops.yaml} .sops.yaml
+    sops --encrypt --input-type yaml --output-type yaml "$src" > "$out"
+  '';
 
   sops.secrets."users/jiwolfsly/initialPassword" = {};
   sops.secrets."users/dummy/initialPassword" = {};

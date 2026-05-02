@@ -49,6 +49,42 @@
         inherit pkgs inputs;
       };
 
+      packages.${system}.rekey-users-secrets = pkgs.writeShellApplication {
+        name = "rekey-users-secrets";
+        runtimeInputs = [
+          pkgs.git
+          pkgs.sops
+        ];
+        text = ''
+          set -euo pipefail
+
+          repo_root="$(git rev-parse --show-toplevel)"
+          source_file="$repo_root/secrets/users.yaml"
+          target_file="$repo_root/secrets/users.yaml.sops"
+
+          if [ ! -f "$source_file" ]; then
+            echo "missing plaintext source: $source_file" >&2
+            exit 1
+          fi
+
+          tmp_file="$(mktemp)"
+          trap 'rm -f "$tmp_file"' EXIT
+
+          sops --encrypt \
+            --input-type yaml \
+            --output-type yaml \
+            "$source_file" > "$tmp_file"
+
+          mv "$tmp_file" "$target_file"
+          echo "wrote $target_file"
+        '';
+      };
+
+      apps.${system}.rekey-users-secrets = {
+        type = "app";
+        program = "${self.packages.${system}.rekey-users-secrets}/bin/rekey-users-secrets";
+      };
+
       nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
         inherit system;
         specialArgs = { inherit inputs; };
