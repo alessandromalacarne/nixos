@@ -49,10 +49,11 @@
             home-manager.useUserPackages = true;
             home-manager.extraSpecialArgs = { inherit inputs; };
 
+            # Keep all intended users wired into Home Manager. Evaluation
+            # requires read access to each referenced /home path.
             home-manager.users = {
               "alsoasnerd" = import /home/alsoasnerd/.config/home-manager/home.nix;
               "dmyna" = import /home/dmyna/.config/home-manager/home.nix;
-              # "jiwolfsly" = import /home/jiwolfsly/.config/home-manager/home.nix;
               "dummy" = import /home/dummy/.config/home-manager/home.nix;
             };
           }
