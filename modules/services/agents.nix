@@ -3,15 +3,86 @@
 let
   system = pkgs.stdenv.hostPlatform.system;
   llmAgentsPackages = inputs."llm-agents".packages.${system};
+  jailedAgents = inputs.jailed-agents.lib.${system};
+  mkJailedAgent = jailedAgents.makeJailedAgent;
+  mkAgent = args: mkJailedAgent ({ extraPkgs = agentBasePackages; } // args);
+  mkAgentWith = builder: args: builder ({ extraPkgs = agentBasePackages; } // args);
+  agentBasePackages = with pkgs; [
+    bashInteractive
+    cargo
+    coreutils
+    curl
+    file
+    findutils
+    gawk
+    git
+    gnumake
+    gnugrep
+    gnused
+    jq
+    nixVersions.latest
+    nodejs
+    openssh
+    pkg-config
+    ripgrep
+    rustc
+    tree
+    typescript
+    unzip
+    wget
+    which
+    yarn
+    zip
+  ];
 in
 pkgs.mkShell {
   packages = [
-    llmAgentsPackages.codex
-    llmAgentsPackages.opencode
-    llmAgentsPackages.gemini-cli
-    llmAgentsPackages.qwen-code
-    llmAgentsPackages.copilot-cli
-    llmAgentsPackages.cursor-agent
+    (mkAgent {
+      name = "jailed-codex";
+      pkg = llmAgentsPackages.codex;
+      configPaths = [
+        "~/.codex"
+        "~/.config/codex"
+        "~/.local/share/codex"
+        "~/.local/state/codex"
+      ];
+    })
+    (mkAgentWith jailedAgents.makeJailedOpencode {
+      pkg = llmAgentsPackages.opencode;
+    })
+    (mkAgentWith jailedAgents.makeJailedGeminiCli {
+      pkg = llmAgentsPackages.gemini-cli;
+    })
+    (mkAgent {
+      name = "jailed-qwen-code";
+      pkg = llmAgentsPackages.qwen-code;
+      configPaths = [
+        "~/.qwen"
+        "~/.config/qwen-code"
+        "~/.local/share/qwen-code"
+        "~/.local/state/qwen-code"
+      ];
+    })
+    (mkAgent {
+      name = "jailed-copilot-cli";
+      pkg = llmAgentsPackages.copilot-cli;
+      configPaths = [
+        "~/.copilot"
+        "~/.config/copilot-cli"
+        "~/.config/github-copilot"
+        "~/.local/share/copilot-cli"
+      ];
+    })
+    (mkAgent {
+      name = "jailed-cursor-agent";
+      pkg = llmAgentsPackages.cursor-agent;
+      configPaths = [
+        "~/.cursor"
+        "~/.config/cursor"
+        "~/.local/share/cursor"
+        "~/.local/state/cursor"
+      ];
+    })
     inputs."antigravity-nix".packages.${system}.default
   ];
 }
