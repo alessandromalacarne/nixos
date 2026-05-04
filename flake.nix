@@ -45,10 +45,6 @@
       };
     in
     {
-      devShells.${system}.default = import ./modules/services/agents.nix {
-        inherit pkgs inputs;
-      };
-
       nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
         inherit system;
         specialArgs = { inherit inputs; };
