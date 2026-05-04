@@ -42,9 +42,6 @@ pkgs.mkShell {
       pkg = llmAgentsPackages.codex;
       configPaths = [
         "~/.codex"
-        "~/.config/codex"
-        "~/.local/share/codex"
-        "~/.local/state/codex"
       ];
     })
     (mkAgentWith jailedAgents.makeJailedOpencode {
@@ -60,7 +57,6 @@ pkgs.mkShell {
         "~/.qwen"
         "~/.config/qwen-code"
         "~/.local/share/qwen-code"
-        "~/.local/state/qwen-code"
       ];
     })
     (mkAgent {
@@ -68,9 +64,6 @@ pkgs.mkShell {
       pkg = llmAgentsPackages.copilot-cli;
       configPaths = [
         "~/.copilot"
-        "~/.config/copilot-cli"
-        "~/.config/github-copilot"
-        "~/.local/share/copilot-cli"
       ];
     })
     (mkAgent {
@@ -79,8 +72,7 @@ pkgs.mkShell {
       configPaths = [
         "~/.cursor"
         "~/.config/cursor"
-        "~/.local/share/cursor"
-        "~/.local/state/cursor"
+        "~/.local/share/cursor-agent"
       ];
     })
     inputs."antigravity-nix".packages.${system}.default
