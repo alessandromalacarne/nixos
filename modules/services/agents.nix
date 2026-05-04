@@ -35,7 +35,8 @@ let
     zip
   ];
 in
-environment.systemPackages = with pkgs; [
+  {
+  environment.systemPackages = with pkgs; [
     (mkAgent {
       name = "jailed-codex";
       pkg = llmAgentsPackages.codex;
@@ -77,3 +78,4 @@ environment.systemPackages = with pkgs; [
     inputs."antigravity-nix".packages.${system}.default
   ];
 }
+
