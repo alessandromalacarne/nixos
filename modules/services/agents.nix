@@ -16,6 +16,8 @@ let
     findutils
     gawk
     git
+    pkgsCross.musl64.stdenv.cc
+    zlib
     gnumake
     gnugrep
     gnused
@@ -73,6 +75,13 @@ in
         "~/.cursor"
         "~/.config/cursor"
         "~/.local/share/cursor-agent"
+      ];
+    })
+    (mkAgent {
+      name = "jailed-amp";
+      pkg = llmAgentsPackages.amp;
+      configPaths = [
+        "~/.config/amp"
       ];
     })
     inputs."antigravity-nix".packages.${system}.default
