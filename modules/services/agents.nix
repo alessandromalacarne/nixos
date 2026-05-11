@@ -39,10 +39,10 @@ let
 in
   {
   environment.systemPackages = with pkgs; [
-    (mkAgent {
+    (mkAgentWith jailedAgents.makeJailedOpencode {
       name = "jailed-codex";
       pkg = llmAgentsPackages.codex;
-      configPaths = [
+      extraReadwriteDirs = [
         "~/.codex"
       ];
     })
@@ -55,14 +55,14 @@ in
     (mkAgentWith jailedAgents.makeJailedOpencode {
       name = "jailed-copilot";
       pkg = llmAgentsPackages.copilot-cli;
-      configPaths = [
+      extraReadwriteDirs = [
         "~/.copilot"
       ];
     })
     (mkAgentWith jailedAgents.makeJailedOpencode {
       name = "jailed-cursor";
       pkg = llmAgentsPackages.cursor-agent;
-      configPaths = [
+      extraReadwriteDirs = [
         "~/.cursor"
         "~/.config/cursor"
         "~/.local/share/cursor-agent"
@@ -72,7 +72,7 @@ in
     (mkAgentWith jailedAgents.makeJailedOpencode {
       name = "jailed-kilocode";
         pkg = llmAgentsPackages.kilocode-cli;
-      configPaths = [
+      extraReadwriteDirs = [
         "~/.config/kilo"
       ];
     })
