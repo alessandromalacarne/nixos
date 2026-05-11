@@ -52,24 +52,15 @@ in
     (mkAgentWith jailedAgents.makeJailedGeminiCli {
       pkg = llmAgentsPackages.gemini-cli;
     })
-    (mkAgent {
-      name = "jailed-qwen-code";
-      pkg = llmAgentsPackages.qwen-code;
-      configPaths = [
-        "~/.qwen"
-        "~/.config/qwen-code"
-        "~/.local/share/qwen-code"
-      ];
-    })
-    (mkAgent {
-      name = "jailed-copilot-cli";
+    (mkAgentWith jailedAgents.makeJailedOpencode {
+      name = "jailed-copilot";
       pkg = llmAgentsPackages.copilot-cli;
       configPaths = [
         "~/.copilot"
       ];
     })
-    (mkAgent {
-      name = "jailed-cursor-agent";
+    (mkAgentWith jailedAgents.makeJailedOpencode {
+      name = "jailed-cursor";
       pkg = llmAgentsPackages.cursor-agent;
       configPaths = [
         "~/.cursor"
@@ -77,13 +68,14 @@ in
         "~/.local/share/cursor-agent"
       ];
     })
-    (mkAgent {
-      name = "jailed-amp";
-      pkg = llmAgentsPackages.amp;
+
+    (mkAgentWith jailedAgents.makeJailedOpencode {
+      name = "jailed-kilocode"
+        pkg = llmAgentsPackages.kilocode-cli;
       configPaths = [
-        "~/.config/amp"
+        "~/.config/kilo"
       ];
-    })
+    });
     inputs."antigravity-nix".packages.${system}.default
   ];
 }
