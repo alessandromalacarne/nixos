@@ -70,7 +70,7 @@ in
     })
 
     (mkAgentWith jailedAgents.makeJailedOpencode {
-      name = "jailed-kilocode"
+      name = "jailed-kilocode";
         pkg = llmAgentsPackages.kilocode-cli;
       configPaths = [
         "~/.config/kilo"
