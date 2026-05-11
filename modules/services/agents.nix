@@ -75,7 +75,7 @@ in
       configPaths = [
         "~/.config/kilo"
       ];
-    });
+    })
     inputs."antigravity-nix".packages.${system}.default
   ];
 }
