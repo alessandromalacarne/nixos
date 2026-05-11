@@ -23,6 +23,7 @@
     ./modules/services/spicetify.nix
     ./modules/services/agents.nix
     ./modules/services/ulysses.nix
+    ./modules/services/syncthing.nix
     # ./modules/services/ollama.nix
   ];
 
