@@ -14,7 +14,6 @@
     # Include the results of the hardware scan.
     ./hardware-configuration.nix
     ./modules/hardware/nvidia.nix
-    ./modules/services/ollama.nix
     ./modules/hardware/audio.nix
     ./modules/hardware/virtualization.nix
     ./modules/hardware/bluetooth.nix
@@ -23,6 +22,8 @@
     ./modules/services/servers.nix
     ./modules/services/spicetify.nix
     ./modules/services/agents.nix
+    ./modules/services/ulysses.nix
+    # ./modules/services/ollama.nix
   ];
 
   # Use the systemd-boot EFI boot loader.
