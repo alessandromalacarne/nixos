@@ -23,7 +23,8 @@ in
   # LAYER 2 — PAM (BLOCK ESCALATION)
   # ==========================================
   environment.etc."security/time.conf".text = ''
-    sudo;su;*;${user};!Al2200-0800
+    sudo ; * ; ${user} ; !Al2200-0800
+    su   ; * ; ${user} ; !Al2200-0800
   '';
 
   security.pam.services.sudo.text = lib.mkDefault (lib.mkAfter ''
