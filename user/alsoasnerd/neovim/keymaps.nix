@@ -188,6 +188,20 @@
       desc = "Open tmux sessionizer";
     }
 
+    # --- Diffview ---
+    {
+      mode = "n";
+      key = "<leader>gd";
+      action = "<cmd>DiffviewOpen<CR>";
+      desc = "Open Diffview";
+    }
+    {
+      mode = "n";
+      key = "<leader>gD";
+      action = "<cmd>DiffviewFileHistory<CR>";
+      desc = "Diffview File History";
+    }
+
     # --- Fugitive (Git) ---
     {
       mode = "n";
@@ -206,13 +220,22 @@
     }
     {
       mode = "n";
-      key = "<leader>gd";
-      action = "<cmd>Git difftool<CR>";
-    }
-    {
-      mode = "n";
       key = "<leader>gl";
       action = "<cmd>Git log<CR>";
+    }
+
+    # --- Gitlinker ---
+    {
+      mode = "n";
+      key = "gB";
+      action = "<cmd>lua require('gitlinker').get_buf_range_url('n')<CR>";
+      desc = "Copy permalink to current line";
+    }
+    {
+      mode = "v";
+      key = "gB";
+      action = "<cmd>'<,'>lua require('gitlinker').get_buf_range_url('v')<CR>";
+      desc = "Copy permalink to selected lines";
     }
 
     # --- Grug Far (Search & Replace) ---

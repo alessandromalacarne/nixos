@@ -17,7 +17,7 @@
   telescope.enable = true;
   binds.whichKey.enable = true;
   visuals.nvim-web-devicons.enable = true;
-  visuals.indent-blankline.enable = true;
+  visuals.indent-blankline.enable = false;
 
   git = {
     enable = true;
@@ -85,5 +85,9 @@
     cmp_luasnip
     luasnip
     conform-nvim
+    diffview-nvim
+    gitlinker-nvim
+    nvim-ufo
+    hlchunk-nvim
   ];
 }

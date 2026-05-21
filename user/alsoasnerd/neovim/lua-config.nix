@@ -80,6 +80,58 @@
       require('grug-far').setup()
     '';
 
+    ufo = ''
+      vim.opt.foldenable = true
+      vim.opt.foldlevel = 99
+      vim.opt.foldlevelstart = 99
+      vim.opt.foldcolumn = '1'
+      vim.opt.fillchars = { foldopen = ' ', foldclose = ' ', fold = ' ', foldsep = ' ' }
+      vim.keymap.set('n', 'zR', function() require('ufo').openAllFolds() end)
+      vim.keymap.set('n', 'zM', function() require('ufo').closeAllFolds() end)
+      vim.keymap.set('n', 'zr', function() require('ufo').openFoldsExceptKinds() end)
+      vim.keymap.set('n', 'zm', function() require('ufo').closeFoldsWith() end)
+      vim.keymap.set('n', 'K', function()
+        local winid = require('ufo').peekFoldedLinesUnderCursor()
+        if not winid then vim.lsp.buf.hover() end
+      end, { desc = 'Peek folded lines or LSP hover' })
+      require('ufo').setup({
+        provider_selector = function(_, filetype, buftype)
+          return { 'treesitter', 'indent' }
+        end,
+      })
+    '';
+
+    hlchunk = ''
+      require('hlchunk').setup({
+        chunk = {
+          enable = true,
+          style = { underline = true },
+        },
+        indent = {
+          enable = true,
+          chars = { '▏' },
+        },
+        blank = {
+          enable = false,
+        },
+        line_num = {
+          enable = true,
+          style = '#806d9c',
+        },
+      })
+    '';
+
+    gitlinker = ''
+      require('gitlinker').setup({
+        opts = {
+          remote = nil,
+          add_current_line_on_normal_mode = true,
+          action_callback = require('gitlinker.actions').copy_to_clipboard,
+          print_url = true,
+        },
+      })
+    '';
+
     whichKeyGroups = ''
       local wk = require('which-key')
       wk.add({
