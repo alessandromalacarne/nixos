@@ -91,16 +91,11 @@
 
   security.polkit.enable = true;
 
-  nix.settings.experimental-features = [
-    "nix-command"
-    "flakes"
-  ];
-
   sops.age.keyFile = "/home/alsoasnerd/.config/sops/age/keys.txt";
   sops.defaultSopsFile = ./secrets/users.yaml.sops;
 
-  sops.secrets."users/jiwolfsly/initialPassword" = {};
-  sops.secrets."users/dummy/initialPassword" = {};
+  sops.secrets."users/jiwolfsly/initialPassword" = { };
+  sops.secrets."users/dummy/initialPassword" = { };
 
   networking.hostName = "nixos"; # Define your hostname.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
