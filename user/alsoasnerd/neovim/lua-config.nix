@@ -1,15 +1,13 @@
 {
+  clipboard = {
+    enable = true;
+    providers.wl-copy.enable = true;
+  };
   luaConfigRC = {
     colorscheme = ''
       require('material').setup()
       vim.cmd.colorscheme('material-deep-ocean')
       vim.cmd.hi('Comment gui=none')
-    '';
-
-    clipboard = ''
-      vim.schedule(function()
-        vim.opt.clipboard = 'unnamedplus'
-      end)
     '';
 
     listchars = ''
