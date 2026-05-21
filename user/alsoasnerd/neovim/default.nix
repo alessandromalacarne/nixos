@@ -1,10 +1,14 @@
 {
   inputs,
   pkgs,
+  lib,
   unstable,
   ...
 }:
 
+let
+  inherit (lib) recursiveUpdate;
+in
 {
   imports = [
     inputs.nvf.homeManagerModules.default
@@ -15,14 +19,14 @@
 
   programs.nvf = {
     enable = true;
-    settings.vim = {
-      imports = [
-        (import ./options.nix { inherit unstable; })
+    settings.vim = recursiveUpdate
+      (import ./options.nix { inherit unstable; })
+      (recursiveUpdate
         (import ./plugins.nix { inherit pkgs; })
-        (import ./lsp.nix)
-        (import ./lua-config.nix)
-        (import ./keymaps.nix)
-      ];
-    };
+        (recursiveUpdate
+          (import ./lsp.nix)
+          (recursiveUpdate
+            (import ./lua-config.nix)
+            (import ./keymaps.nix))));
   };
 }
