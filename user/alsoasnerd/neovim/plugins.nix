@@ -39,7 +39,7 @@
   autopairs.nvim-autopairs.enable = true;
 
   ui.noice.enable = true;
-  ui.notifications.nvim-notify.enable = true;
+  notify.nvim-notify.enable = true;
 
   formatter.conform-nvim = {
     enable = true;
