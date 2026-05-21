@@ -16,6 +16,7 @@
   telescope.enable = true;
   binds.whichKey.enable = true;
   visuals.nvim-web-devicons.enable = true;
+  visuals.indent-blankline.enable = true;
 
   git = {
     enable = true;
@@ -31,6 +32,12 @@
   };
 
   lsp.enable = true;
+  diagnostics.trouble.enable = true;
+
+  autopairs.nvim-autopairs.enable = true;
+
+  ui.noice.enable = true;
+  ui.notifications.nvim-notify.enable = true;
 
   formatter.conform-nvim = {
     enable = true;
