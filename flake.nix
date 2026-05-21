@@ -120,7 +120,7 @@
             # Keep all intended users wired into Home Manager. Evaluation
             # requires read access to each referenced /home path.
             home-manager.users = {
-              "alsoasnerd" = import /home/alsoasnerd/.config/home-manager/home.nix;
+              "alsoasnerd" = import ./user/alsoasnerd/home.nix;
               "dmyna" = import /home/dmyna/.config/home-manager/home.nix;
               "dummy" = import /home/dummy/.config/home-manager/home.nix;
             };
