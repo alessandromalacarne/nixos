@@ -34,16 +34,18 @@
     { self, nixpkgs, ... }@inputs:
     let
       system = "x86_64-linux";
+      unstable = import inputs.nixpkgs-unstable {
+        inherit system;
+        config.allowUnfree = true;
+      };
+
       pkgs = import nixpkgs {
         inherit system;
         config.allowUnfree = true;
         overlays = [
           inputs.oskars-dotfiles.overlays.spotx
           (final: prev: {
-            unstable = import inputs.nixpkgs-unstable {
-              system = prev.system;
-              config.allowUnfree = true;
-            };
+            unstable = unstable;
           })
         ];
       };
@@ -91,7 +93,11 @@
 
       nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
         inherit system;
-        specialArgs = { inherit inputs; };
+
+        specialArgs = {
+          inherit unstable inputs;
+        };
+
         modules = [
           ./configuration.nix
           inputs.nix-flatpak.nixosModules.nix-flatpak
@@ -103,16 +109,13 @@
             nixpkgs.overlays = [
               inputs.oskars-dotfiles.overlays.spotx
               (final: prev: {
-                unstable = import inputs.nixpkgs-unstable {
-                  system = prev.system;
-                  config.allowUnfree = true;
-                };
+                unstable = unstable;
               })
             ];
 
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
-            home-manager.extraSpecialArgs = { inherit inputs; };
+            home-manager.extraSpecialArgs = { inherit unstable inputs; };
 
             # Keep all intended users wired into Home Manager. Evaluation
             # requires read access to each referenced /home path.
