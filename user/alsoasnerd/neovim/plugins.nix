@@ -31,8 +31,10 @@
     statusline.enable = true;
   };
 
-  lsp.enable = true;
-  diagnostics.trouble.enable = true;
+  lsp = {
+    enable = true;
+    trouble.enable = true;
+  };
 
   autopairs.nvim-autopairs.enable = true;
 
