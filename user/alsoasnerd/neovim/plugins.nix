@@ -11,6 +11,7 @@
     ts.enable = true;
     lua.enable = true;
     nix.enable = true;
+    markdown.enable = true;
   };
 
   telescope.enable = true;
