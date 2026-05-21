@@ -17,7 +17,7 @@
   telescope.enable = true;
   binds.whichKey.enable = true;
   visuals.nvim-web-devicons.enable = true;
-  visuals.indent-blankline.enable = false;
+  visuals.indent-blankline.enable = true;
 
   git = {
     enable = true;
