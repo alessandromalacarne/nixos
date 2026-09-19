@@ -26,7 +26,6 @@
     ./modules/networking/networking.nix
     ./modules/services/servers.nix
     ./modules/services/spicetify.nix
-    ./modules/services/agents.nix
     ./modules/services/ulysses.nix
     ./modules/services/syncthing.nix
     ./modules/services/nginx.nix
