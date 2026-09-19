@@ -28,6 +28,10 @@
     ./modules/services/agents.nix
     ./modules/services/ulysses.nix
     ./modules/services/syncthing.nix
+    ./modules/services/nginx.nix
+    ./modules/services/grimmory.nix
+    ./modules/services/twenty.nix
+    ./modules/services/pihole.nix
     # ./modules/services/ollama.nix
   ];
 
