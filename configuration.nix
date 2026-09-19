@@ -6,6 +6,7 @@
   config,
   lib,
   pkgs,
+  inputs,
   ...
 }:
 
@@ -282,7 +283,11 @@
   };
 
   environment.systemPackages = with pkgs; [
-    kdePackages.kio-extras
+    inputs.noctalia.packages.${pkgs.stdenv.hostPlatform.system}.default
+    xwayland-satellite
+    mangohud
+    gamemode
+    appimage-run
 
     tailscale
     coreutils
