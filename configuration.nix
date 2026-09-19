@@ -231,7 +231,7 @@
         "audio"
         "video"
         "render"
-        "docker"
+        "podman"
       ];
       shell = pkgs.zsh;
     };
@@ -242,7 +242,7 @@
         "networkmanager"
         "wheel"
         "audio"
-        "docker"
+        "podman"
       ];
       shell = pkgs.zsh;
     };
@@ -253,7 +253,7 @@
         "networkmanager"
         "wheel"
         "audio"
-        "docker"
+        "podman"
         "gamemode"
       ];
       shell = pkgs.zsh;
