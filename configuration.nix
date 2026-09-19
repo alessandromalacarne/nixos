@@ -138,18 +138,6 @@
   # Enable wacom tablet
   # services.xserver.wacom.enable = true;
   services.xserver.windowManager.bspwm.enable = true;
-  services.xserver.desktopManager.plasma6.enable = true;
-
-  # Remove kde bloated
-  environment.plasma6.excludePackages = with pkgs.kdePackages; [
-    elisa
-    gwenview
-    okular
-    kate
-    khelpcenter
-    konsole
-    ark
-  ];
 
   # services = {
   #   flatpak = {
