@@ -1,7 +1,15 @@
 { config, pkgs, inputs, ... }:
 
 {
-  imports = [ ./programs.nix ./bspwm.nix ./theme.nix ./neovim ];
+  imports = [
+    ./programs.nix
+    ./bspwm.nix
+    ./theme.nix
+    ./neovim
+    ./noctalia
+    ./niri.nix
+    ./agents.nix
+  ];
   home.username = "alsoasnerd";
   home.homeDirectory = "/home/alsoasnerd";
   nixpkgs.config.allowUnfree = true;
