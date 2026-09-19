@@ -12,6 +12,11 @@
     lua.enable = true;
     nix.enable = true;
     markdown.enable = true;
+    php = {
+      enable = true;
+      format.enable = true;
+      lsp.servers = [ "intelephense" ];
+    };
   };
 
   telescope.enable = true;
@@ -64,8 +69,8 @@
     rust-analyzer
     lua-language-server
     stylua
-    nodePackages.vscode-langservers-extracted
-    nodePackages."@tailwindcss/language-server"
+    vscode-langservers-extracted
+    tailwindcss-language-server
     vue-language-server
     prettierd
   ];
