@@ -14,3 +14,5 @@ secrets/*.yml
 # Ignore vbios dumps (not redistributable) and libvirt draft dumps
 gtx1650.rom
 win11-lookingglass.xml.working
+
+.commandcode/
