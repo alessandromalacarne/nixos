@@ -21,10 +21,6 @@
       };
     };
 
-    displayManager = {
-      defaultSession = "hyprland";
-    };
-
     input-remapper.enable = true;
   };
 

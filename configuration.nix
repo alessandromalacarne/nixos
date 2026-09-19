@@ -172,6 +172,7 @@
 
   programs = {
     hyprland.enable = true;
+    niri.enable = true;
     gamescope = {
       enable = true;
       capSysNice = true;
@@ -199,8 +200,16 @@
     };
   };
 
-  # Enable LightDM
-  services.xserver.displayManager.lightdm.enable = true;
+  # Login manager: greetd + tuigreet (works with Wayland compositors like niri)
+  services.greetd = {
+    enable = true;
+    settings = {
+      default_session = {
+        command = "${pkgs.greetd.tuigreet}/bin/tuigreet --time --cmd niri-session";
+        user = "greeter";
+      };
+    };
+  };
 
   # Configure keymap in X11
   services.xserver.xkb = {
