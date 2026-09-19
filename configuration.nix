@@ -13,7 +13,11 @@
   imports = [
     # Include the results of the hardware scan.
     ./hardware-configuration.nix
+    # Toggle: nvidia.nix for PRIME offload (host uses dGPU),
+    # gpu-passthrough.nix for VFIO passthrough to VM (host uses iGPU only).
+    # Only one should be uncommented at a time
     ./modules/hardware/nvidia.nix
+    # ./modules/hardware/gpu-passthrough.nix
     ./modules/hardware/audio.nix
     ./modules/hardware/virtualization.nix
     ./modules/hardware/bluetooth.nix
