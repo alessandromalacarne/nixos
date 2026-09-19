@@ -277,6 +277,10 @@
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget
+  environment.sessionVariables = {
+    NIXOS_OZONE_WL = "1";
+  };
+
   environment.systemPackages = with pkgs; [
     kdePackages.kio-extras
 
@@ -317,6 +321,17 @@
     };
   };
   programs.dconf.enable = true;
+
+  # XDG Desktop Portal for file dialogs (needed by Brave, Nautilus, etc. on Wayland)
+  xdg.portal = {
+    enable = true;
+    extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
+    config = {
+      common = {
+        default = [ "gtk" ];
+      };
+    };
+  };
 
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
