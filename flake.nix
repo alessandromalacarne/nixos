@@ -57,40 +57,79 @@
       };
     in
     {
-      packages.${system}.rekey-users-secrets = pkgs.writeShellApplication {
-        name = "rekey-users-secrets";
-        runtimeInputs = [
-          pkgs.git
-          pkgs.sops
-        ];
-        text = ''
-          set -euo pipefail
+      packages.${system} = {
+        rekey-users-secrets = pkgs.writeShellApplication {
+          name = "rekey-users-secrets";
+          runtimeInputs = [
+            pkgs.git
+            pkgs.sops
+          ];
+          text = ''
+            set -euo pipefail
 
-          repo_root="$(git rev-parse --show-toplevel)"
-          source_file="$repo_root/secrets/users.yaml"
-          target_file="$repo_root/secrets/users.yaml.sops"
+            repo_root="$(git rev-parse --show-toplevel)"
+            source_file="$repo_root/secrets/users.yaml"
+            target_file="$repo_root/secrets/users.yaml.sops"
 
-          if [ ! -f "$source_file" ]; then
-            echo "missing plaintext source: $source_file" >&2
-            exit 1
-          fi
+            if [ ! -f "$source_file" ]; then
+              echo "missing plaintext source: $source_file" >&2
+              exit 1
+            fi
 
-          tmp_file="$(mktemp)"
-          trap 'rm -f "$tmp_file"' EXIT
+            tmp_file="$(mktemp)"
+            trap 'rm -f "$tmp_file"' EXIT
 
-          sops --encrypt \
-            --input-type yaml \
-            --output-type yaml \
-            "$source_file" > "$tmp_file"
+            sops --encrypt \
+              --input-type yaml \
+              --output-type yaml \
+              "$source_file" > "$tmp_file"
 
-          mv "$tmp_file" "$target_file"
-          echo "wrote $target_file"
-        '';
+            mv "$tmp_file" "$target_file"
+            echo "wrote $target_file"
+          '';
+        };
+
+        rekey-services-secrets = pkgs.writeShellApplication {
+          name = "rekey-services-secrets";
+          runtimeInputs = [
+            pkgs.git
+            pkgs.sops
+          ];
+          text = ''
+            set -euo pipefail
+
+            repo_root="$(git rev-parse --show-toplevel)"
+            source_file="$repo_root/secrets/services.yaml"
+            target_file="$repo_root/secrets/services.yaml.sops"
+
+            if [ ! -f "$source_file" ]; then
+              echo "missing plaintext source: $source_file" >&2
+              exit 1
+            fi
+
+            tmp_file="$(mktemp)"
+            trap 'rm -f "$tmp_file"' EXIT
+
+            sops --encrypt \
+              --input-type yaml \
+              --output-type yaml \
+              "$source_file" > "$tmp_file"
+
+            mv "$tmp_file" "$target_file"
+            echo "wrote $target_file"
+          '';
+        };
       };
 
-      apps.${system}.rekey-users-secrets = {
-        type = "app";
-        program = "${self.packages.${system}.rekey-users-secrets}/bin/rekey-users-secrets";
+      apps.${system} = {
+        rekey-users-secrets = {
+          type = "app";
+          program = "${self.packages.${system}.rekey-users-secrets}/bin/rekey-users-secrets";
+        };
+        rekey-services-secrets = {
+          type = "app";
+          program = "${self.packages.${system}.rekey-services-secrets}/bin/rekey-services-secrets";
+        };
       };
 
       nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
