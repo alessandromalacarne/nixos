@@ -28,6 +28,11 @@
       url = "github:NotAShelf/nvf";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    noctalia = {
+      url = "github:noctalia-dev/noctalia";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    niri-flake.url = "github:sodiboo/niri-flake";
   };
 
   outputs =
@@ -44,6 +49,7 @@
         config.allowUnfree = true;
         overlays = [
           inputs.oskars-dotfiles.overlays.spotx
+          inputs.niri-flake.overlays.niri
           (final: prev: {
             unstable = unstable;
           })
@@ -103,11 +109,13 @@
           inputs.nix-flatpak.nixosModules.nix-flatpak
           inputs.home-manager.nixosModules.home-manager
           inputs.sops-nix.nixosModules.sops
+          inputs.niri-flake.nixosModules.niri
 
           {
             nixpkgs.config.allowUnfree = true;
             nixpkgs.overlays = [
               inputs.oskars-dotfiles.overlays.spotx
+              inputs.niri-flake.overlays.niri
               (final: prev: {
                 unstable = unstable;
               })
