@@ -127,7 +127,7 @@ in
     # taskwarrior2
     # timewarrior
     python3
-    docker-compose
+    podman-compose
     moodle-dl
     tradingview
 
@@ -144,14 +144,15 @@ in
     feh
     # retroarch-full
     conky
+    nautilus
 
     # Music
-    reaper
     p7zip
 
     gnutls
     nodejs
     typescript
+    babashka
     jq
 
     obs-studio
@@ -164,6 +165,7 @@ in
 
     bubblewrap
     steam
+    cemu
 
     (writeShellScriptBin "ednix" ''
       ${chezmoi}/bin/chezmoi edit --apply /home/alsoasnerd/.config/nixos
@@ -178,4 +180,9 @@ in
     '')
   ];
 
+  # Set Nautilus as default file manager
+  xdg.mimeApps.enable = true;
+  xdg.mimeApps.defaultApplications = {
+    "inode/directory" = "org.gnome.Nautilus.desktop";
+  };
 }
