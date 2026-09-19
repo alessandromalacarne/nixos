@@ -57,10 +57,6 @@
       };
     in
     {
-      devShells.${system}.default = import ./modules/services/agents.nix {
-        inherit pkgs inputs;
-      };
-
       packages.${system}.rekey-users-secrets = pkgs.writeShellApplication {
         name = "rekey-users-secrets";
         runtimeInputs = [
