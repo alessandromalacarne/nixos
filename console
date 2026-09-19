@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+XML="/home/alsoasnerd/.config/nixos/win11-lookingglass.xml"
+VM="win11"
+
+HUGEPAGES=$(</proc/sys/vm/nr_hugepages)
+if [ "$HUGEPAGES" -lt 4096 ] 2>/dev/null; then
+  echo 4096 | sudo tee /proc/sys/vm/nr_hugepages || true
+fi
+
+STATE=$(virsh -c qemu:///system domstate "$VM" 2>/dev/null || true)
+if [ "$STATE" = "running" ]; then
+  virsh -c qemu:///system destroy "$VM"
+  sleep 3
+fi
+
+virsh -c qemu:///system define "$XML"
+virsh -c qemu:///system start "$VM"
+
+echo "[+] Aguardando boot..."
+sleep 3
+
+# -m 1 = IVSHMEM mouse (mais preciso)
+# -r   = reconnect ate host service aparecer
+looking-glass-client -F -m 1 -S -r
