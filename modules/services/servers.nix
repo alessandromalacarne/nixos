@@ -1,6 +1,7 @@
 { pkgs, ... }:
 {
   services = {
+    flatpak.enable = true;
     sunshine = {
       enable = true;
       autoStart = true;
@@ -23,6 +24,8 @@
     displayManager = {
       defaultSession = "hyprland";
     };
+
+    input-remapper.enable = true;
   };
 
   boot.kernelModules = [ "uinput" ];
