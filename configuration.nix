@@ -78,6 +78,8 @@
   boot.loader.efi.canTouchEfiVariables = true;
   boot.supportedFilesystems = [ "ntfs" ];
 
+  services.gnome.gcr-ssh-agent.enable = false;
+
   zramSwap = {
     enable = true;
     memoryPercent = 150;
@@ -368,7 +370,12 @@
       X11Forwarding = true;
     };
   };
-  services.tailscale.enable = true;
+  services.tailscale = {
+    enable = true;
+    # tailscale writes its resolvconf input as exclusive (-x), making openresolv
+    # ignore the static nameservers from networking.nameservers
+    extraSetFlags = [ "--accept-dns=false" ];
+  };
 
   # Open ports in the firewall.
   # networking.firewall.allowedTCPPorts = [ ... ];
