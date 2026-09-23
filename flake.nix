@@ -19,6 +19,10 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     ai-jail.url = "github:akitaonrails/ai-jail";
+    ai-memory = {
+      url = "github:akitaonrails/ai-memory";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     ai-usagebar = {
       url = "github:akitaonrails/ai-usagebar";
       inputs.nixpkgs.follows = "nixpkgs";
