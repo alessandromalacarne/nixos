@@ -4,6 +4,7 @@ let
   system = pkgs.stdenv.hostPlatform.system;
 
   aiJail = inputs.ai-jail.packages.${system}.default;
+  aiUsagebar = inputs.ai-usagebar.packages.${system}.default;
   agents = inputs."llm-agents".packages.${system};
 
   # ai-jail exposes the host store read-only plus the user and system
@@ -61,6 +62,7 @@ in
 {
   home.packages = [
     aiJail
+    aiUsagebar
     agents.opencode
     agents.command-code
     agents.cursor-agent
