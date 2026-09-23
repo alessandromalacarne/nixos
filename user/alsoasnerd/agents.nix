@@ -92,63 +92,30 @@ let
       // args
     );
 
+  # Resolved through the store path: a stray ai-jail earlier in PATH (an
+  # old ~/.local/bin copy, say) would otherwise silently win and enforce
+  # the wrong policy.
+  mkJailedAgent =
+    name: command:
+    pkgs.writeShellApplication {
+      inherit name;
+      text = ''
+        exec ${aiJail}/bin/ai-jail ${command} "$@"
+      '';
+    };
+
 in
 {
-  home.packages = with pkgs; [
-    (mkAgentWith jailedAgents.makeJailedOpencode {
-      pkg = llmAgentsPackages.opencode;
-    })
+  home.packages = [
+    aiJail
+    agents.opencode
+    agents.command-code
+    agents.cursor-agent
+    agents.antigravity-cli
 
-    (mkAgentWith jailedAgents.makeJailedOpencode {
-      name = "jailed-cc";
-      pkg = llmAgentsPackages.command-code;
-
-      # jail.nix clears the env, so bash derives SHELL from the fake
-      # /etc/passwd (nologin) and Command Code cannot spawn any shell tool.
-      env.SHELL = "${pkgs.zsh}/bin/zsh";
-
-      # Scripts with `#!/usr/bin/env ...` shebangs need /usr/bin/env, which
-      # the jail does not provide.
-      baseJailOptions = jailedAgents.commonJailOptions ++ [
-        (jailedAgents.internals.jail.combinators.ro-bind "${pkgs.coreutils}/bin/env" "/usr/bin/env")
-        (jailedAgents.internals.jail.combinators.add-path "\"$HOME/.swarmforge/bin\"")
-        (jailedAgents.internals.jail.combinators.add-path "\"$HOME/.swarmforge/scripts\"")
-      ];
-
-      extraReadonlyDirs = [
-        "~/.gitconfig"
-        "~/.ssh"
-      ];
-
-      extraReadwriteDirs = [
-        "~/projects"
-        "~/.commandcode"
-        "~/.agents"
-        "~/.swarmforge"
-        "/tmp"
-      ];
-    })
-
-    (mkAgentWith jailedAgents.makeJailedOpencode {
-      name = "jailed-cursor";
-      pkg = llmAgentsPackages.cursor-agent;
-
-      extraReadwriteDirs = [
-        "~/projects"
-        "~/.cursor"
-        "~/.config/cursor"
-        "~/.local/share/cursor-agent"
-      ];
-    })
-
-    (mkAgentWith jailedAgents.makeJailedOpencode {
-      name = "jailed-agy";
-      pkg = llmAgentsPackages.antigravity-cli;
-
-      extraReadwriteDirs = [
-        "~/projects"
-        "~/.gemini"
-      ];
-    })
+    (mkJailedAgent "jailed-opencode" "opencode")
+    (mkJailedAgent "jailed-cc" "cmd")
+    (mkJailedAgent "jailed-cursor" "cursor-agent")
+    (mkJailedAgent "jailed-agy" "agy")
   ];
 }
