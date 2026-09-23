@@ -8,7 +8,7 @@
     enable = true;
     settings = {
       backdrop = {
-        enable = true;
+        enabled = true;
       };
 
       wallpaper = {
