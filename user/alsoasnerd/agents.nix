@@ -105,4 +105,17 @@ in
       $DRY_RUN_CMD install -Dm0644 ${aiUsagebarConfig} ${config.home.homeDirectory}/.config/ai-usagebar/config.toml
     fi
   '';
+
+  # `ai-memory init` lays out the data dir and writes the config once, with an
+  # auto-generated [auth] token_pepper that must stay out of the store. It
+  # never overwrites an existing config, so after the first switch the file
+  # belongs to the user (bind address, provider keys, capture policy).
+  home.activation.aiMemoryInit = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    if [ ! -e ${config.home.homeDirectory}/.config/ai-memory/config.toml ]; then
+      $DRY_RUN_CMD ${aiMemory}/bin/ai-memory \
+        --data-dir ${config.home.homeDirectory}/.local/share/ai-memory \
+        --config ${config.home.homeDirectory}/.config/ai-memory/config.toml \
+        init
+    fi
+  '';
 }
