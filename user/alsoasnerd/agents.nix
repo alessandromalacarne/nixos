@@ -4,6 +4,17 @@ let
   system = pkgs.stdenv.hostPlatform.system;
 
   aiJail = inputs.ai-jail.packages.${system}.default;
+
+  # install-hooks probes for its script bundle at <dir of the binary>/hooks
+  # (the release-tarball layout), /usr/local/share and /usr/share; the Nix
+  # prefix's own share/ai-memory/hooks is none of those, so the bundle gets
+  # the sibling link that the documented commands expect to find.
+  aiMemory = (inputs.ai-memory.packages.${system}.default).overrideAttrs (prev: {
+    postInstall = prev.postInstall + ''
+      ln -s ../share/ai-memory/hooks $out/bin/hooks
+    '';
+  });
+
   aiUsagebar = inputs.ai-usagebar.packages.${system}.default;
   agents = inputs."llm-agents".packages.${system};
 
@@ -69,6 +80,7 @@ in
 {
   home.packages = [
     aiJail
+    aiMemory
     aiUsagebar
     agents.opencode
     agents.command-code
