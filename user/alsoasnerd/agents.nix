@@ -41,6 +41,11 @@ let
       "${config.home.homeDirectory}/.commandcode",
       "${config.home.homeDirectory}/.agents",
       "${config.home.homeDirectory}/.swarmforge",
+
+      # ai-memory's data dir holds the hook spool and logs that capture
+      # inside the jail writes to; read-only, hooks degrade to tmpfs and
+      # events vanish when the sandbox exits.
+      "${config.home.homeDirectory}/.local/share/ai-memory",
     ]
 
     [commands.opencode]
