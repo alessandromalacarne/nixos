@@ -19,7 +19,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     ai-jail.url = "github:akitaonrails/ai-jail";
-    jailed-agents.url = "github:andersonjoseph/jailed-agents";
     llm-agents.url = "github:numtide/llm-agents.nix";
     antigravity-nix = {
       url = "github:jacopone/antigravity-nix";
