@@ -118,4 +118,11 @@ in
     (mkJailedAgent "jailed-cursor" "cursor-agent")
     (mkJailedAgent "jailed-agy" "agy")
   ];
+
+  # ai-jail refuses a symlinked ~/.ai-jail unless the target is owned by the
+  # user, which a store path never is, so the generated config is copied into
+  # place instead of linked.
+  home.activation.aiJailConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    $DRY_RUN_CMD install -m 0644 ${jailConfig} ${config.home.homeDirectory}/.ai-jail
+  '';
 }
