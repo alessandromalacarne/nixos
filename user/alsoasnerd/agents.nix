@@ -118,4 +118,25 @@ in
         init
     fi
   '';
+
+  # Mirrors the AUR user unit (packaging/systemd/ai-memory-user.service): one
+  # data dir owned by the server, the CLI and hooks are thin HTTP clients
+  # against loopback. --enable-web adds the read-only wiki browser there too.
+  systemd.user.services.ai-memory = {
+    Unit = {
+      Description = "ai-memory MCP server (user service)";
+      Documentation = "https://github.com/akitaonrails/ai-memory";
+    };
+    Service = {
+      Type = "simple";
+      ExecStart = "${aiMemory}/bin/ai-memory --data-dir %h/.local/share/ai-memory --config %h/.config/ai-memory/config.toml serve --transport http --enable-web";
+      # Optional: bearer token, LLM/embedding provider keys.
+      EnvironmentFile = "-%h/.config/ai-memory/env";
+      Restart = "on-failure";
+      RestartSec = "5s";
+      NoNewPrivileges = true;
+      PrivateTmp = true;
+    };
+    Install.WantedBy = [ "default.target" ];
+  };
 }
