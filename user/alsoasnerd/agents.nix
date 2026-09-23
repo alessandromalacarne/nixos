@@ -58,6 +58,13 @@ let
       '';
     };
 
+  # The CLI writes back to this file when the TUI's settings overlay saves,
+  # so it is seeded only when absent instead of linked or overwritten.
+  aiUsagebarConfig = pkgs.writeText "ai-usagebar-config.toml" ''
+    [ui]
+    primary = "commandcode"
+  '';
+
 in
 {
   home.packages = [
@@ -79,5 +86,11 @@ in
   # place instead of linked.
   home.activation.aiJailConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     $DRY_RUN_CMD install -m 0644 ${jailConfig} ${config.home.homeDirectory}/.ai-jail
+  '';
+
+  home.activation.aiUsagebarConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    if [ ! -e ${config.home.homeDirectory}/.config/ai-usagebar/config.toml ]; then
+      $DRY_RUN_CMD install -Dm0644 ${aiUsagebarConfig} ${config.home.homeDirectory}/.config/ai-usagebar/config.toml
+    fi
   '';
 }
