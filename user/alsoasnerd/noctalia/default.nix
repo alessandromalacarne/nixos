@@ -83,9 +83,13 @@
         corner_radius_scale = 1.3000000193715096;
         niri_overview_type_to_launch_enabled = true;
         screen_time_enabled = true;
+        launcher = {
+          providers.session = {
+            global = true;
+          };
+        };
         panel = {
           control_center_placement = "floating";
-          launcher_session_search = true;
           transparency_mode = "glass";
         };
       };
