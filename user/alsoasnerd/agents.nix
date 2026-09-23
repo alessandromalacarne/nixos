@@ -23,7 +23,6 @@ let
     ro_maps = [
       "${config.home.homeDirectory}/.nix-profile",
       "/run/current-system/sw",
-      "${pkgs.coreutils}/bin/env:/usr/bin/env",
     ]
 
     rw_maps = [
