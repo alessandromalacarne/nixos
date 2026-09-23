@@ -47,51 +47,6 @@ let
     rw_maps = [ "${config.home.homeDirectory}/.gemini" ]
   '';
 
-  llmAgentsPackages = inputs."llm-agents".packages.${system};
-  jailedAgents = inputs.jailed-agents.lib.${system};
-
-  agentBasePackages = with pkgs; [
-    alacritty
-    bashInteractive
-    cargo
-    coreutils
-    curl
-    file
-    findutils
-    gawk
-    podman
-    git
-    zsh
-    gcc
-    zlib
-    gnumake
-    gnugrep
-    gnused
-    jq
-    babashka
-    nixVersions.latest
-    nodejs
-    openssh
-    pkg-config
-    ripgrep
-    tree
-    typescript
-    unzip
-    wget
-    which
-    yarn
-    zip
-  ];
-
-  mkAgentWith =
-    builder: args:
-    builder (
-      {
-        extraPkgs = agentBasePackages;
-      }
-      // args
-    );
-
   # Resolved through the store path: a stray ai-jail earlier in PATH (an
   # old ~/.local/bin copy, say) would otherwise silently win and enforce
   # the wrong policy.
