@@ -361,6 +361,12 @@
   programs.gnupg.agent.enableSSHSupport = true;
   programs.ssh.startAgent = true;
 
+  # ai-jail mounts a tmpfs over this directory when its ssh support is enabled.
+  # NixOS includes ssh_config.d snippets by absolute store path, so it never
+  # creates the directory itself, and bwrap cannot mkdir it because the sandbox
+  # root is a read-only bind.
+  environment.etc."ssh/ssh_config.d/.keep".text = "";
+
   services.openssh = {
     enable = true;
     settings = {
