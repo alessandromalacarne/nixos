@@ -21,6 +21,7 @@
         center = [
           "clock"
           "cat"
+          "ai_usage"
         ];
         margin_ends = 120;
       };
@@ -76,7 +77,10 @@
       };
 
       plugins = {
-        enabled = [ "noctalia/bongocat" ];
+        enabled = [
+          "noctalia/bongocat"
+          "felipeartur/ai-usagebar"
+        ];
       };
 
       shell = {
@@ -104,6 +108,11 @@
 
       widget.cat = {
         type = "noctalia/bongocat:cat";
+      };
+
+      widget.ai_usage = {
+        type = "felipeartur/ai-usagebar:bar";
+        vendor = "commandcode";
       };
     };
   };
