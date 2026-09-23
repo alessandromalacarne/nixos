@@ -156,6 +156,7 @@ in
     jq
 
     obs-studio
+    libreoffice-fresh
 
     dust
 
