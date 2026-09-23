@@ -20,10 +20,9 @@ let
     # somewhere that does not export it (desktop entries, ssh commands).
     env_pass = [ "TZ", "SHELL=${pkgs.zsh}/bin/zsh" ]
 
-    ro_maps = [
-      "${config.home.homeDirectory}/.nix-profile",
-      "/run/current-system/sw",
-    ]
+    # ~/.nix-profile needs no map: it resolves inside the sandbox through the
+    # bound home and /nix, and bwrap cannot put a mount point on a symlink.
+    ro_maps = [ "/run/current-system/sw" ]
 
     rw_maps = [
       "${config.home.homeDirectory}/projects",
