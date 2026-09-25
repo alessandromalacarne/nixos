@@ -8,6 +8,11 @@ let
   user = "alsoasnerd";
   baseDir = "/home/${user}/.config/pihole";
   tailscaleIp = "100.71.53.50";
+  localHosts = [
+    "jellyfin.home.arpa"
+    "openwebui.home.arpa"
+    "twenty.home.arpa"
+  ];
 
 in
 {
@@ -22,7 +27,7 @@ in
       FTLCONF_dns_upstreams = "1.0.0.1;8.8.8.8;8.8.4.4";
       FTLCONF_dns_listeningMode = "all";
       FTLCONF_webserver_allowall_origins = "true";
-      FTLCONF_dns_hosts = "${tailscaleIp} jellyfin.home.arpa;${tailscaleIp} twenty.home.arpa";
+      FTLCONF_dns_hosts = lib.concatMapStringsSep ";" (host: "${tailscaleIp} ${host}") localHosts;
     };
     environmentFiles = [
       config.sops.secrets."services/pihole/web_password".path

@@ -20,6 +20,14 @@
       };
       extraConfig = "client_max_body_size 50M;";
     };
+
+    virtualHosts."openwebui.home.arpa" = {
+      locations."/" = {
+        proxyPass = "http://127.0.0.1:33801";
+        proxyWebsockets = true;
+      };
+      extraConfig = "client_max_body_size 50M;";
+    };
   };
 
   networking.firewall.allowedTCPPorts = [

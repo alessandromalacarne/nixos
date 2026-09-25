@@ -15,6 +15,7 @@
     hosts = {
       "100.71.53.50" = [
         "jellyfin.home.arpa"
+        "openwebui.home.arpa"
         "twenty.home.arpa"
       ];
     };
