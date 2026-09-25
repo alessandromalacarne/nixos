@@ -31,6 +31,7 @@
     ./modules/services/nginx.nix
     ./modules/services/grimmory.nix
     ./modules/services/twenty.nix
+    ./modules/services/open-webui.nix
     ./modules/services/pihole.nix
     # ./modules/services/ollama.nix
   ];

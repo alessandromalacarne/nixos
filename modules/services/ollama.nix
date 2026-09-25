@@ -43,11 +43,4 @@ with pkgs;
   # --- 3. Permissions ---
   users.groups.video.members = [ "ollama" ];
   users.groups.render.members = [ "ollama" ];
-
-  services.open-webui = {
-    enable = true;
-    package = unstable.open-webui;
-    host = "0.0.0.0";
-    port = 33801;
-  };
 }
