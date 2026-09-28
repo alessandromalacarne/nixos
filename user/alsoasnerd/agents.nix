@@ -98,6 +98,49 @@ in
     (mkJailedAgent "jailed-agy" "agy")
   ];
 
+  # chezmoi: dot_config/opencode. opencode.json goes through the Home Manager
+  # module, which injects $schema and renders the file itself; the two files
+  # that have no module option are linked directly from the payload dir. The
+  # binary already comes from the llm-agents flake above, so the module is
+  # config-only (`package = null`) and does not pull in pkgs.opencode as well.
+  programs.opencode = {
+    enable = true;
+    package = null;
+
+    settings = {
+      provider = {
+        ollama = {
+          name = "Ollama";
+          npm = "@ai-sdk/openai-compatible";
+          options.baseURL = "http://127.0.0.1:11434/v1";
+          models = {
+            "minimax-m2.5:cloud" = {
+              name = "minimax-m2.5:cloud";
+            };
+            "minimax-m2.7:cloud" = {
+              name = "minimax-m2.7:cloud";
+            };
+            "glm-5:cloud" = {
+              name = "glm-5:cloud";
+            };
+          };
+        };
+      };
+
+      plugin = [ "oh-my-opencode-slim" ];
+
+      agent = {
+        explore.disable = true;
+        general.disable = true;
+      };
+    };
+  };
+
+  xdg.configFile = {
+    "opencode/oh-my-opencode-slim.json".source = ./dotfiles/opencode/oh-my-opencode-slim.json;
+    "opencode/package.json".source = ./dotfiles/opencode/package.json;
+  };
+
   # ai-jail refuses a symlinked ~/.ai-jail unless the target is owned by the
   # user, which a store path never is, so the generated config is copied into
   # place instead of linked.

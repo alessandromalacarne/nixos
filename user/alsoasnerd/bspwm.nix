@@ -19,4 +19,11 @@
     '';
   };
 
+  # chezmoi: dot_config/polybar and dot_config/sxhkd, both launched by the
+  # extraConfig above. The polybar file is installed as config.ini, which is
+  # the path that launcher already uses.
+  xdg.configFile = {
+    "polybar/config.ini".source = ./dotfiles/polybar.ini;
+    "sxhkd/sxhkdrc".source = ./dotfiles/sxhkdrc;
+  };
 }
