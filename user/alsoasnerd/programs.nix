@@ -82,7 +82,6 @@ in
     git
     gitflow
     act
-    chezmoi
     fzf
     bat
     eza
@@ -167,14 +166,6 @@ in
     bubblewrap
     steam
     cemu
-
-    (writeShellScriptBin "ednix" ''
-      ${chezmoi}/bin/chezmoi edit --apply /home/alsoasnerd/.config/nixos
-    '')
-
-    (writeShellScriptBin "edhm" ''
-      ${chezmoi}/bin/chezmoi edit --apply /home/alsoasnerd/.config/home-manager
-    '')
 
     (writeShellScriptBin "Maya" ''
       API_PORT=7777 ROCKET_ADDRESS=0.0.0.0 MayaAPI
