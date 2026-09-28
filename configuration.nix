@@ -29,7 +29,7 @@
     # ./modules/services/ulysses.nix
     ./modules/services/syncthing.nix
     ./modules/services/nginx.nix
-    ./modules/services/grimmory.nix
+    ./modules/services/bookorbit.nix
     ./modules/services/twenty.nix
     ./modules/services/open-webui.nix
     ./modules/services/speech.nix
