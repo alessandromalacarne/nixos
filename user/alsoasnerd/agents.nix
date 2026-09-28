@@ -100,12 +100,14 @@ in
 
   # chezmoi: dot_config/opencode. opencode.json goes through the Home Manager
   # module, which injects $schema and renders the file itself; the two files
-  # that have no module option are linked directly from the payload dir. The
-  # binary already comes from the llm-agents flake above, so the module is
-  # config-only (`package = null`) and does not pull in pkgs.opencode as well.
+  # that have no module option are linked directly from the payload dir.
+  # The module gets the llm-agents build as its package rather than null: its
+  # warnings option calls lib.getVersion on cfg.package unconditionally, so a
+  # null package aborts evaluation of the whole system. Naming the same
+  # derivation still keeps pkgs.opencode out of the profile.
   programs.opencode = {
     enable = true;
-    package = null;
+    package = agents.opencode;
 
     settings = {
       provider = {
