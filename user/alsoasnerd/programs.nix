@@ -153,6 +153,7 @@ in
     typescript
     babashka
     jq
+    worktrunk
 
     obs-studio
     libreoffice-fresh
