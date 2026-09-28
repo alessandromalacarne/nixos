@@ -16,3 +16,6 @@ gtx1650.rom
 win11-lookingglass.xml.working
 
 .commandcode/
+
+# Ignore session worktrees
+.agents/worktrees/
