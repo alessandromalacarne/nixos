@@ -173,7 +173,9 @@
             home-manager.users = {
               "alsoasnerd" = import ./user/alsoasnerd/home.nix;
               # "dmyna" = import /home/dmyna/.config/home-manager/home.nix;
-              "dummy" = import /home/dummy/.config/home-manager/home.nix;
+              # "dummy" = import /home/dummy/.config/home-manager/home.nix;
+              #   /home/dummy does not exist, so this import aborts evaluation
+              #   of the whole system before any other user is reached.
             };
           }
         ];
