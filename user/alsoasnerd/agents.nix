@@ -1,4 +1,10 @@
-{ config, lib, pkgs, inputs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  inputs,
+  ...
+}:
 
 let
   system = pkgs.stdenv.hostPlatform.system;
@@ -41,6 +47,7 @@ let
       "${config.home.homeDirectory}/.commandcode",
       "${config.home.homeDirectory}/.agents",
       "${config.home.homeDirectory}/.swarmforge",
+      "${config.home.homeDirectory}/.config",
 
       # ai-memory's data dir holds the hook spool and logs that capture
       # inside the jail writes to; read-only, hooks degrade to tmpfs and
