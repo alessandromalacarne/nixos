@@ -14,6 +14,7 @@
 
     hosts = {
       "100.71.53.50" = [
+        "bookorbit.home.arpa"
         "jellyfin.home.arpa"
         "openwebui.home.arpa"
         "twenty.home.arpa"

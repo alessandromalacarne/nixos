@@ -13,6 +13,14 @@
       };
     };
 
+    virtualHosts."bookorbit.home.arpa" = {
+      locations."/" = {
+        proxyPass = "http://127.0.0.1:6060";
+        proxyWebsockets = true;
+      };
+      extraConfig = "client_max_body_size 2G;";
+    };
+
     virtualHosts."twenty.home.arpa" = {
       locations."/" = {
         proxyPass = "http://127.0.0.1:3100";

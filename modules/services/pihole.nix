@@ -9,6 +9,7 @@ let
   baseDir = "/home/${user}/.config/pihole";
   tailscaleIp = "100.71.53.50";
   localHosts = [
+    "bookorbit.home.arpa"
     "jellyfin.home.arpa"
     "openwebui.home.arpa"
     "twenty.home.arpa"
