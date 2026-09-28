@@ -2,13 +2,12 @@
 
 {
   languages = {
-    enableLSP = true;
     enableTreesitter = true;
     rust = {
       enable = true;
-      crates.enable = true;
+      extensions.crates-nvim.enable = true;
     };
-    ts.enable = true;
+    typescript.enable = true;
     lua.enable = true;
     nix.enable = true;
     markdown.enable = true;
