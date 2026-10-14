@@ -168,6 +168,11 @@
             home-manager.useUserPackages = true;
             home-manager.extraSpecialArgs = { inherit unstable inputs; };
 
+            # Colliding plain files (pre-Home-Manager dotfiles) abort
+            # activation before it writes anything, links included; move
+            # them to <name>.hm-backup instead of failing.
+            home-manager.backupFileExtension = "hm-backup";
+
             # Keep all intended users wired into Home Manager. Evaluation
             # requires read access to each referenced /home path.
             home-manager.users = {
