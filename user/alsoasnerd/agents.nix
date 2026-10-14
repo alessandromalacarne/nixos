@@ -77,7 +77,7 @@ let
     pkgs.writeShellApplication {
       inherit name;
       text = ''
-        exec ${aiJail}/bin/ai-jail ${command} "$@"
+        exec ${aiJail}/bin/ai-jail --docker ${command} "$@"
       '';
     };
 
