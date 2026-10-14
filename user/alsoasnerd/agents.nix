@@ -48,6 +48,7 @@ let
       "${config.home.homeDirectory}/.agents",
       "${config.home.homeDirectory}/.swarmforge",
       "${config.home.homeDirectory}/.config",
+      "${config.home.homeDirectory}/.local/bin",
 
       # ai-memory's data dir holds the hook spool and logs that capture
       # inside the jail writes to; read-only, hooks degrade to tmpfs and
@@ -81,6 +82,19 @@ let
       '';
     };
 
+  # ai-jail builds the sandbox PATH from the launcher's environment and
+  # prunes entries that are not mounted inside, so the caller's shell
+  # cannot be trusted to provide ~/.local/bin. Export it before ai-jail
+  # runs; the rw_map above and the activation below keep the directory
+  # in place.
+  jailedCc = pkgs.writeShellApplication {
+    name = "jailed-cc";
+    text = ''
+      export PATH="${config.home.homeDirectory}/.local/bin:$PATH"
+      exec ${aiJail}/bin/ai-jail --env "GIT_SSH_COMMAND=ssh -F /dev/null" --docker cmd "$@"
+    '';
+  };
+
   # The CLI writes back to this file when the TUI's settings overlay saves,
   # so it is seeded only when absent instead of linked or overwritten.
   aiUsagebarConfig = pkgs.writeText "ai-usagebar-config.toml" ''
@@ -100,7 +114,7 @@ in
     agents.antigravity-cli
 
     (mkJailedAgent "jailed-opencode" "opencode")
-    (mkJailedAgent "jailed-cc" "cmd")
+    jailedCc
     (mkJailedAgent "jailed-cursor" "cursor-agent")
     (mkJailedAgent "jailed-agy" "agy")
   ];
@@ -155,6 +169,13 @@ in
   # place instead of linked.
   home.activation.aiJailConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     $DRY_RUN_CMD install -m 0644 ${jailConfig} ${config.home.homeDirectory}/.ai-jail
+  '';
+
+  # ai-jail skips a map whose source is missing on the host, and PATH
+  # pruning then drops the entry inside the sandbox, so ~/.local/bin has
+  # to exist even before anything is installed into it.
+  home.activation.localBin = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    $DRY_RUN_CMD install -d -m 0755 ${config.home.homeDirectory}/.local/bin
   '';
 
   home.activation.aiUsagebarConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
