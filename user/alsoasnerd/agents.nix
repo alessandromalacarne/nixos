@@ -102,6 +102,96 @@ let
     primary = "commandcode"
   '';
 
+  # `install-hooks` bakes its own store path into every hook command it writes,
+  # so the first GC after an ai-memory bump leaves Command Code spawning a
+  # deleted binary: hooks exit 127, capture stops silently, and the MCP tools
+  # then answer from the default scope because nothing ever publishes the
+  # active-project pointer. This wrapper is regenerated on every switch at a
+  # path that never changes, so the hook commands outlive the store path.
+  aiMemoryHook = pkgs.writeShellApplication {
+    name = "ai-memory-hook";
+    text = ''
+      event="''${1:-}"
+      if [ -z "$event" ]; then
+        echo "usage: ai-memory-hook <session-start|pre-tool-use|post-tool-use|stop>" >&2
+        exit 2
+      fi
+
+      exec ${aiMemory}/bin/ai-memory \
+        --data-dir ${config.home.homeDirectory}/.local/share/ai-memory \
+        hook --event "$event" --agent command-code \
+        --server-url "''${AI_MEMORY_HOOK_URL:-http://127.0.0.1:49374}"
+    '';
+  };
+
+  # Command Code owns ~/.commandcode/settings.json and writes back to it, so
+  # the hooks cannot be linked or replaced wholesale: this merges them in,
+  # touching only hook entries that call ai-memory and leaving every other key
+  # (the CLI's own worktree settings, hooks of other tools) alone.
+  commandCodeHookMerge = pkgs.writeText "command-code-hook-merge.py" ''
+    import json
+    import os
+    import sys
+    import tempfile
+
+    HOOKS = {
+        "SessionStart": "session-start",
+        "PreToolUse": "pre-tool-use",
+        "PostToolUse": "post-tool-use",
+        "Stop": "stop",
+    }
+
+    def is_ai_memory(group):
+        if not isinstance(group, dict):
+            return False
+        for hook in group.get("hooks", []):
+            if isinstance(hook, dict) and "ai-memory" in str(hook.get("command", "")):
+                return True
+        return False
+
+    def main():
+        path, wrapper = sys.argv[1], sys.argv[2]
+        try:
+            with open(path, encoding="utf-8") as handle:
+                settings = json.load(handle)
+        except FileNotFoundError:
+            settings = {}
+        if not isinstance(settings, dict):
+            return 0
+
+        hooks = settings.get("hooks")
+        if not isinstance(hooks, dict):
+            hooks = {}
+
+        changed = False
+        for event, name in HOOKS.items():
+            existing = hooks.get(event)
+            if not isinstance(existing, list):
+                existing = []
+            kept = [group for group in existing if not is_ai_memory(group)]
+            desired = kept + [
+                {"hooks": [{"type": "command", "command": f"{wrapper} {name}"}]}
+            ]
+            if desired != existing:
+                changed = True
+                hooks[event] = desired
+
+        if not changed:
+            return 0
+
+        settings["hooks"] = hooks
+        directory = os.path.dirname(path)
+        os.makedirs(directory, exist_ok=True)
+        handle, temp = tempfile.mkstemp(dir=directory, prefix=".settings.", suffix=".json")
+        with os.fdopen(handle, "w", encoding="utf-8") as out:
+            json.dump(settings, out, indent=2)
+            out.write("\n")
+        os.replace(temp, path)
+        return 0
+
+    sys.exit(main())
+  '';
+
 in
 {
   home.packages = [
@@ -182,6 +272,13 @@ in
     if [ ! -e ${config.home.homeDirectory}/.config/ai-usagebar/config.toml ]; then
       $DRY_RUN_CMD install -Dm0644 ${aiUsagebarConfig} ${config.home.homeDirectory}/.config/ai-usagebar/config.toml
     fi
+  '';
+
+  home.activation.aiMemoryCommandCodeHooks = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    $DRY_RUN_CMD install -Dm0755 ${aiMemoryHook}/bin/ai-memory-hook ${config.home.homeDirectory}/.local/bin/ai-memory-hook
+    $DRY_RUN_CMD ${pkgs.python3}/bin/python3 ${commandCodeHookMerge} \
+      ${config.home.homeDirectory}/.commandcode/settings.json \
+      ${config.home.homeDirectory}/.local/bin/ai-memory-hook
   '';
 
   # `ai-memory init` lays out the data dir and writes the config once, with an
