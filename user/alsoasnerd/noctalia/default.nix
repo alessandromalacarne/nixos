@@ -108,12 +108,14 @@
 
       widget.cat = {
         type = "noctalia/bongocat:cat";
+        audio_spectrum = true;
       };
 
       widget.ai_usage = {
         type = "felipeartur/ai-usagebar:bar";
         vendor = "commandcode";
       };
+
     };
   };
 }
