@@ -14,6 +14,7 @@
     ./noctalia
     ./niri.nix
     ./agents.nix
+    ./notify-broker.nix
     ./shell.nix
     ./git.nix
     ./terminals.nix

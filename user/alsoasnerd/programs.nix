@@ -105,6 +105,7 @@ in
     playerctl
     pavucontrol
     alsa-utils
+    libnotify
     gh
 
     feishin
