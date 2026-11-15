@@ -39,7 +39,7 @@ let
 
     # SHELL is pinned so agents can spawn a shell even when launched from
     # somewhere that does not export it (desktop entries, ssh commands).
-    env_pass = [ "TZ", "SHELL=${pkgs.zsh}/bin/zsh" ]
+    env_pass = [ "TZ", "SHELL=${pkgs.zsh}/bin/zsh", "GH_TOKEN" ]
 
     # ~/.nix-profile needs no map: it resolves inside the sandbox through the
     # bound home and /nix, and bwrap cannot put a mount point on a symlink.
@@ -49,6 +49,7 @@ let
       "${config.home.homeDirectory}/projects",
       "${config.home.homeDirectory}/.commandcode",
       "${config.home.homeDirectory}/.agents",
+      "${config.home.homeDirectory}/.secrets/agents",
       "${config.home.homeDirectory}/.swarmforge",
       "${config.home.homeDirectory}/.config",
       "${config.home.homeDirectory}/.local/bin",

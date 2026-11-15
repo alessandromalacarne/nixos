@@ -1,5 +1,21 @@
-{ ... }:
+{ config, pkgs, ... }:
 
+let
+  # gh is wrapped so it gets a fresh GH_TOKEN; git does not read that
+  # variable, so it needs the same token through a credential helper.
+  # The helper is installed in ~/.local/bin because that directory is
+  # rw-mapped into ai-jail and the absolute path stays valid there.
+  clunkerToken = "${config.home.homeDirectory}/.local/bin/clunker-token.sh";
+  credentialHelper = pkgs.writeShellScript "git-credential-clunker" ''
+    set -eu
+    [ "''${1:-}" = "get" ] || exit 0
+    token="$(${clunkerToken} 2>/dev/null || true)"
+    case "$token" in
+      ""|"null") exit 1 ;;
+    esac
+    printf 'username=x-access-token\npassword=%s\n' "$token"
+  '';
+in
 {
   # chezmoi: dot_gitconfig, merged with the entries the live ~/.gitconfig had
   # grown since (safe.directory = *, gpg."ssh".allowedSignersFile); the stale
@@ -17,6 +33,10 @@
     lfs.enable = true;
 
     settings = {
+      credential = {
+        "https://github.com".helper = "${config.home.homeDirectory}/.local/bin/git-credential-clunker";
+      };
+
       user = {
         name = "alsoasnerd";
         email = "alsoasnerd@gmail.com";
@@ -57,4 +77,6 @@
       };
     };
   };
+
+  home.file.".local/bin/git-credential-clunker".source = credentialHelper;
 }

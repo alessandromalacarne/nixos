@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ config, pkgs, ... }:
 
 let
   unstable = import <nixos-unstable> {
@@ -6,6 +6,19 @@ let
       allowUnfree = true;
     };
   };
+
+  # gh reads GH_TOKEN from its environment. A static session variable only
+  # holds the script path, so wrap gh instead and resolve a fresh token on
+  # every invocation. Falling back to the real gh keeps auth errors visible
+  # when the token endpoint is unavailable.
+  clunkerToken = "${config.home.homeDirectory}/.local/bin/clunker-token.sh";
+  ghWithToken = pkgs.writeShellScriptBin "gh" ''
+    token="$(${clunkerToken} 2>/dev/null || true)"
+    case "$token" in
+      ""|"null") exec ${pkgs.gh}/bin/gh "$@" ;;
+      *) exec env GH_TOKEN="$token" ${pkgs.gh}/bin/gh "$@" ;;
+    esac
+  '';
 in
 {
   systemd.user.timers = {
@@ -106,7 +119,7 @@ in
     pavucontrol
     alsa-utils
     libnotify
-    gh
+    ghWithToken
 
     feishin
     jellyfin
