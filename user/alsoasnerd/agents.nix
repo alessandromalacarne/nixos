@@ -9,7 +9,14 @@
 let
   system = pkgs.stdenv.hostPlatform.system;
 
-  aiJail = inputs.ai-jail.packages.${system}.default;
+  # Upstream's checkPhase fails inside the Nix build sandbox: the
+  # `command_path_env` test clears the environment (including BWRAP_BIN)
+  # and then cannot locate bwrap in a trusted location, so the whole
+  # build aborts even though compilation succeeds. Skip upstream tests
+  # here; ai-jail is a dependency, not code we are validating.
+  aiJail = inputs.ai-jail.packages.${system}.default.overrideAttrs (old: {
+    doCheck = false;
+  });
 
   # install-hooks probes for its script bundle at <dir of the binary>/hooks
   # (the release-tarball layout), /usr/local/share and /usr/share; the Nix

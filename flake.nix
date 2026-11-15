@@ -13,7 +13,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     spicetify-nix.url = "github:Gerg-L/spicetify-nix";
-    openclaude-flake.url = "github:alessandromalacarne/openclaude-flake";
     sops-nix = {
       url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -60,6 +59,17 @@
           inputs.niri-flake.overlays.niri
           (final: prev: {
             unstable = unstable;
+          })
+          # fpdf2's test_image_with_explicit_dimensions compares a
+          # rendered-image hash that differs across system library
+          # versions; disable its checks so the build is reproducible.
+          (final: prev: {
+            python3Packages = prev.python3Packages // {
+              fpdf2 = prev.python3Packages.fpdf2.overrideAttrs (_: {
+                doCheck = false;
+                doInstallCheck = false;
+              });
+            };
           })
         ];
       };
@@ -156,11 +166,23 @@
 
           {
             nixpkgs.config.allowUnfree = true;
+            nixpkgs.config.permittedInsecurePackages = [
+              "electron-33.4.11"
+              "electron-36.9.5"
+            ];
             nixpkgs.overlays = [
               inputs.oskars-dotfiles.overlays.spotx
               inputs.niri-flake.overlays.niri
               (final: prev: {
                 unstable = unstable;
+              })
+              (final: prev: {
+                python3Packages = prev.python3Packages // {
+                  fpdf2 = prev.python3Packages.fpdf2.overrideAttrs (_: {
+                    doCheck = false;
+                    doInstallCheck = false;
+                  });
+                };
               })
             ];
 

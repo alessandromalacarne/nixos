@@ -1,4 +1,9 @@
-{ config, pkgs, inputs, ... }:
+{
+  config,
+  pkgs,
+  inputs,
+  ...
+}:
 
 {
   imports = [
@@ -15,7 +20,6 @@
   ];
   home.username = "alsoasnerd";
   home.homeDirectory = "/home/alsoasnerd";
-  nixpkgs.config.allowUnfree = true;
 
   home.sessionVariables = {
     EDITOR = "nvim";

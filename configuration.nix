@@ -4,7 +4,6 @@
 
 {
   config,
-  lib,
   pkgs,
   inputs,
   ...
@@ -304,6 +303,9 @@
     tailscale
     coreutils
     openssl
+    # `builtins.fetchGit` (niri's pipewire-rs cargo dependency) shells out to
+    # git; without it on PATH, evaluating this config fails before any build.
+    git
     searxng
     pulseaudio
     neovim

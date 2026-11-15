@@ -52,11 +52,6 @@ in
     };
   };
 
-  nixpkgs.config.permittedInsecurePackages = [
-    "electron-33.4.11"
-    "electron-36.9.5"
-  ];
-
   services.gammastep = {
     enable = true;
     provider = "manual";
