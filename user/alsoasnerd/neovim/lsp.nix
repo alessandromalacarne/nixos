@@ -37,7 +37,46 @@
           '.eslintrc.json', 'eslint.config.js', 'eslint.config.mjs',
           'package.json',
         },
-        settings = { validate = 'on' },
+        settings = {
+          validate = 'on',
+          -- vscode-eslint 3.x runs path.isAbsolute(settings.nodePath) while
+          -- resolving settings. Neovim only forwards the keys we set, so an
+          -- unset nodePath crashes every textDocument/diagnostic request with
+          -- 'The "path" argument must be of type string. Received undefined'.
+          nodePath = "",
+        },
+        before_init = function(_, config)
+          -- ESLint scopes config lookup to the workspace folder, a VS Code
+          -- concept Neovim does not provide on its own.
+          local root_dir = config.root_dir
+          if root_dir then
+            config.settings = config.settings or {}
+            config.settings.workspaceFolder = {
+              uri  = vim.uri_from_fname(root_dir),
+              name = vim.fn.fnamemodify(root_dir, ':t'),
+            }
+          end
+        end,
+        -- Requests the server sends to the client; without handlers Neovim
+        -- answers MethodNotFound and the server logs an uncaught exception.
+        handlers = {
+          ['eslint/openDoc'] = function(_, result)
+            if result then vim.ui.open(result.url) end
+            return {}
+          end,
+          ['eslint/confirmESLintExecution'] = function(_, result)
+            if not result then return end
+            return 4 -- approved
+          end,
+          ['eslint/probeFailed'] = function()
+            vim.notify('[eslint] probe failed', vim.log.levels.WARN)
+            return {}
+          end,
+          ['eslint/noLibrary'] = function()
+            vim.notify('[eslint] unable to find the ESLint library', vim.log.levels.WARN)
+            return {}
+          end,
+        },
       })
       vim.lsp.enable('eslint')
 
@@ -72,11 +111,22 @@
           end
 
           local tb = require('telescope.builtin')
-          map('gd',         tb.lsp_definitions,              '[G]oto [D]efinition')
-          map('gr',         tb.lsp_references,               '[G]oto [R]eferences')
+          map('gd',         function()
+            tb.lsp_definitions({ file_ignore_patterns = {} })
+          end, '[G]oto [D]efinition')
+          map('gr',         function()
+            tb.lsp_references({ file_ignore_patterns = {} })
+          end, '[G]oto [R]eferences')
+          map('<leader>flr', function()
+            tb.lsp_references({ file_ignore_patterns = {} })
+          end, 'LSP: [R]eferences')
           map('cd',         vim.diagnostic.open_float,        '[C]ode [D]iagnostics')
-          map('gI',         tb.lsp_implementations,           '[G]oto [I]mplementation')
-          map('<leader>D',  tb.lsp_type_definitions,          'Type [D]efinition')
+          map('gI',         function()
+            tb.lsp_implementations({ file_ignore_patterns = {} })
+          end, '[G]oto [I]mplementation')
+          map('<leader>D',  function()
+            tb.lsp_type_definitions({ file_ignore_patterns = {} })
+          end, 'Type [D]efinition')
           map('<leader>ds', tb.lsp_document_symbols,          '[D]ocument [S]ymbols')
           map('<leader>ws', tb.lsp_dynamic_workspace_symbols, '[W]orkspace [S]ymbols')
           map('<leader>rn', vim.lsp.buf.rename,               '[R]e[n]ame')
@@ -85,7 +135,7 @@
 
           local client = vim.lsp.get_client_by_id(event.data.client_id)
 
-          if client and client.supports_method(
+          if client and client:supports_method(
             vim.lsp.protocol.Methods.textDocument_documentHighlight) then
             local hl_group = vim.api.nvim_create_augroup(
               'nvf-lsp-highlight', { clear = false })
@@ -107,15 +157,27 @@
             })
           end
 
-          -- eslint: auto-fix on save (replaces Mason's on_attach)
+          -- eslint: auto-fix on save
           if client and client.name == 'eslint' then
+            vim.api.nvim_buf_create_user_command(event.buf, 'EslintFixAll', function()
+              client:request_sync('workspace/executeCommand', {
+                command   = 'eslint.applyAllFixes',
+                arguments = {
+                  {
+                    uri     = vim.uri_from_bufnr(event.buf),
+                    version = vim.lsp.util.buf_versions[event.buf],
+                  },
+                },
+              }, nil, event.buf)
+            end, {})
+
             vim.api.nvim_create_autocmd('BufWritePre', {
-              buffer   = event.buf,
-              command  = 'EslintFixAll',
+              buffer  = event.buf,
+              command = 'EslintFixAll',
             })
           end
 
-          if client and client.supports_method(
+          if client and client:supports_method(
             vim.lsp.protocol.Methods.textDocument_inlayHint) then
             map('<leader>th', function()
               vim.lsp.inlay_hint.enable(

@@ -18,7 +18,12 @@
     };
   };
 
-  telescope.enable = true;
+  telescope = {
+    enable = true;
+    # Disable nvf's default :Telescope lsp_references binding (it filters
+    # node_modules); we rebind it below with the filter turned off.
+    mappings.lspReferences = null;
+  };
   binds.whichKey.enable = true;
   visuals.nvim-web-devicons.enable = true;
   visuals.indent-blankline.enable = true;
