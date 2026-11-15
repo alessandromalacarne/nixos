@@ -19,3 +19,6 @@ win11-lookingglass.xml.working
 
 # Ignore session worktrees
 .agents/worktrees/
+
+# ai-jail drops this marker into a project whose sandbox config it wrote
+.ai-jail
