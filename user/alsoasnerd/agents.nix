@@ -60,8 +60,22 @@ let
       "${config.home.homeDirectory}/.local/share/ai-memory",
     ]
 
-    [commands.opencode]
-    agent_state = true
+    # ai-jail picks a [commands.<name>] layer by the literal first argv token,
+    # not by the agent the binary resolves to; only the built-in aliases
+    # (`opencode`, `open-code`) are canonicalized. llm-agents ships the v2
+    # binary as `opencode2`, so a [commands.opencode] table would never match
+    # and its maps would be silently dropped.
+    #
+    # ~/.local/share/opencode holds opencode.db (sessions, messages, parts,
+    # workspaces) and ~/.local/state/opencode holds prompt history, TUI tabs
+    # and server locks. Without these maps both are created on the jail's
+    # throwaway tmpfs home, so every session disappears when the jail exits.
+    [commands.opencode2]
+    rw_maps = [
+      "${config.home.homeDirectory}/.opencode",
+      "${config.home.homeDirectory}/.local/share/opencode",
+      "${config.home.homeDirectory}/.local/state/opencode",
+    ]
 
     [commands.cursor-agent]
     rw_maps = [
@@ -72,32 +86,40 @@ let
 
     [commands.agy]
     rw_maps = [ "${config.home.homeDirectory}/.gemini" ]
+
+    # freebuff keeps everything under ~/.config/manicode (FREEBUFF_CONFIG_DIR,
+    # default <home>/.config/manicode), which the global rw_maps already cover,
+    # so it needs no [commands.freebuff] layer.
+
   '';
 
   # Resolved through the store path: a stray ai-jail earlier in PATH (an
   # old ~/.local/bin copy, say) would otherwise silently win and enforce
   # the wrong policy.
+  #
+  # `localBin`: ai-jail builds the sandbox PATH from the launcher's
+  # environment and prunes entries that are not mounted inside, so the
+  # caller's shell cannot be trusted to provide ~/.local/bin. Opt in only
+  # where the agent is installed there — prepending it also shadows the
+  # profile copy of tools whose ~/.local/bin symlink is older.
+  #
+  # `gitSsh`: pins the ssh config so the agent never reads the host's
+  # ~/.ssh/config from inside the sandbox.
   mkJailedAgent =
-    name: command:
+    {
+      name,
+      command,
+      localBin ? false,
+      gitSsh ? false,
+    }:
     pkgs.writeShellApplication {
       inherit name;
       text = ''
-        exec ${aiJail}/bin/ai-jail --docker ${command} "$@"
+        ${lib.optionalString localBin ''export PATH="${config.home.homeDirectory}/.local/bin:$PATH"''}
+        exec ${aiJail}/bin/ai-jail \
+          ${lib.optionalString gitSsh ''--env "GIT_SSH_COMMAND=ssh -F /dev/null" ''}--docker ${command} "$@"
       '';
     };
-
-  # ai-jail builds the sandbox PATH from the launcher's environment and
-  # prunes entries that are not mounted inside, so the caller's shell
-  # cannot be trusted to provide ~/.local/bin. Export it before ai-jail
-  # runs; the rw_map above and the activation below keep the directory
-  # in place.
-  jailedCc = pkgs.writeShellApplication {
-    name = "jailed-cc";
-    text = ''
-      export PATH="${config.home.homeDirectory}/.local/bin:$PATH"
-      exec ${aiJail}/bin/ai-jail --env "GIT_SSH_COMMAND=ssh -F /dev/null" --docker cmd "$@"
-    '';
-  };
 
   # The CLI writes back to this file when the TUI's settings overlay saves,
   # so it is seeded only when absent instead of linked or overwritten.
@@ -205,15 +227,36 @@ in
     aiJail
     aiMemory
     aiUsagebar
-    agents.opencode
+    agents.opencode2
     agents.command-code
     agents.cursor-agent
     agents.antigravity-cli
+    agents.freebuff
 
-    (mkJailedAgent "jailed-opencode" "opencode")
-    jailedCc
-    (mkJailedAgent "jailed-cursor" "cursor-agent")
-    (mkJailedAgent "jailed-agy" "agy")
+    (mkJailedAgent {
+      name = "jailed-opencode";
+      command = "opencode2";
+    })
+    (mkJailedAgent {
+      name = "jailed-cc";
+      command = "cmd";
+      localBin = true;
+      gitSsh = true;
+    })
+    (mkJailedAgent {
+      name = "jailed-freebuff";
+      command = "freebuff";
+      localBin = true;
+      gitSsh = true;
+    })
+    (mkJailedAgent {
+      name = "jailed-cursor";
+      command = "cursor-agent";
+    })
+    (mkJailedAgent {
+      name = "jailed-agy";
+      command = "agy";
+    })
   ];
 
   # chezmoi: dot_config/opencode. opencode.json goes through the Home Manager
@@ -225,40 +268,7 @@ in
   # derivation still keeps pkgs.opencode out of the profile.
   programs.opencode = {
     enable = true;
-    package = agents.opencode;
-
-    settings = {
-      provider = {
-        ollama = {
-          name = "Ollama";
-          npm = "@ai-sdk/openai-compatible";
-          options.baseURL = "http://127.0.0.1:11434/v1";
-          models = {
-            "minimax-m2.5:cloud" = {
-              name = "minimax-m2.5:cloud";
-            };
-            "minimax-m2.7:cloud" = {
-              name = "minimax-m2.7:cloud";
-            };
-            "glm-5:cloud" = {
-              name = "glm-5:cloud";
-            };
-          };
-        };
-      };
-
-      plugin = [ "oh-my-opencode-slim" ];
-
-      agent = {
-        explore.disable = true;
-        general.disable = true;
-      };
-    };
-  };
-
-  xdg.configFile = {
-    "opencode/oh-my-opencode-slim.json".source = ./dotfiles/opencode/oh-my-opencode-slim.json;
-    "opencode/package.json".source = ./dotfiles/opencode/package.json;
+    package = agents.opencode2;
   };
 
   # ai-jail refuses a symlinked ~/.ai-jail unless the target is owned by the
@@ -273,6 +283,14 @@ in
   # to exist even before anything is installed into it.
   home.activation.localBin = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     $DRY_RUN_CMD install -d -m 0755 ${config.home.homeDirectory}/.local/bin
+  '';
+
+  # Same rule for opencode's state dirs: if they do not exist on the host the
+  # rw_maps in [commands.opencode2] are skipped and the sandbox falls back to
+  # tmpfs, which is exactly how sessions get lost on a fresh account.
+  home.activation.opencodeDataDirs = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    $DRY_RUN_CMD install -d -m 0755 ${config.home.homeDirectory}/.local/share/opencode
+    $DRY_RUN_CMD install -d -m 0755 ${config.home.homeDirectory}/.local/state/opencode
   '';
 
   home.activation.aiUsagebarConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
