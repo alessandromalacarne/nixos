@@ -24,6 +24,7 @@
     ./modules/storage/filesys.nix
     ./modules/networking/networking.nix
     ./modules/services/servers.nix
+    ./modules/services/ai-memory.nix
     ./modules/services/spicetify.nix
     # ./modules/services/ulysses.nix
     ./modules/services/syncthing.nix

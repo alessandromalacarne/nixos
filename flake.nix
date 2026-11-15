@@ -163,6 +163,7 @@
           inputs.home-manager.nixosModules.home-manager
           inputs.sops-nix.nixosModules.sops
           inputs.niri-flake.nixosModules.niri
+          inputs.ai-memory.nixosModules.default
 
           {
             nixpkgs.config.allowUnfree = true;

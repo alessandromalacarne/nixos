@@ -18,15 +18,11 @@ let
     doCheck = false;
   });
 
-  # install-hooks probes for its script bundle at <dir of the binary>/hooks
-  # (the release-tarball layout), /usr/local/share and /usr/share; the Nix
-  # prefix's own share/ai-memory/hooks is none of those, so the bundle gets
-  # the sibling link that the documented commands expect to find.
-  aiMemory = (inputs.ai-memory.packages.${system}.default).overrideAttrs (prev: {
-    postInstall = prev.postInstall + ''
-      ln -s ../share/ai-memory/hooks $out/bin/hooks
-    '';
-  });
+  # Plain upstream package: since 3.x `install-hooks` probes
+  # `<prefix>/share/ai-memory/hooks`, which is where the Nix build already
+  # installs the bundle, so the old `bin/hooks` override is gone. The service
+  # (modules/services/ai-memory.nix) defaults to this same derivation.
+  aiMemory = inputs.ai-memory.packages.${system}.default;
 
   aiUsagebar = inputs.ai-usagebar.packages.${system}.default;
   agents = inputs."llm-agents".packages.${system};
@@ -57,9 +53,10 @@ let
       "${config.home.homeDirectory}/.config",
       "${config.home.homeDirectory}/.local/bin",
 
-      # ai-memory's data dir holds the hook spool and logs that capture
-      # inside the jail writes to; read-only, hooks degrade to tmpfs and
-      # events vanish when the sandbox exits.
+      # Hooks still run as the desktop user and spool here; the server's
+      # db/wiki/models moved to /var/lib/ai-memory (system service). Without
+      # this map, capture inside the jail degrades to tmpfs and events vanish
+      # when the sandbox exits.
       "${config.home.homeDirectory}/.local/share/ai-memory",
     ]
 
@@ -115,6 +112,9 @@ let
   # then answer from the default scope because nothing ever publishes the
   # active-project pointer. This wrapper is regenerated on every switch at a
   # path that never changes, so the hook commands outlive the store path.
+  #
+  # The data dir stays user-owned: the server owns /var/lib/ai-memory, and the
+  # hook only needs it for the spool, session state and capture policy.
   aiMemoryHook = pkgs.writeShellApplication {
     name = "ai-memory-hook";
     text = ''
@@ -288,37 +288,10 @@ in
       ${config.home.homeDirectory}/.local/bin/ai-memory-hook
   '';
 
-  # `ai-memory init` lays out the data dir and writes the config once, with an
-  # auto-generated [auth] token_pepper that must stay out of the store. It
-  # never overwrites an existing config, so after the first switch the file
-  # belongs to the user (bind address, provider keys, capture policy).
-  home.activation.aiMemoryInit = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    if [ ! -e ${config.home.homeDirectory}/.config/ai-memory/config.toml ]; then
-      $DRY_RUN_CMD ${aiMemory}/bin/ai-memory \
-        --data-dir ${config.home.homeDirectory}/.local/share/ai-memory \
-        --config ${config.home.homeDirectory}/.config/ai-memory/config.toml \
-        init
-    fi
+  # The hook-only data dir the ai-jail map above and aiMemoryHook point at.
+  # The server's state lives in /var/lib/ai-memory; hooks only need this for
+  # the spool and per-agent session state.
+  home.activation.aiMemoryHookDataDir = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    $DRY_RUN_CMD install -d -m 0700 ${config.home.homeDirectory}/.local/share/ai-memory
   '';
-
-  # Mirrors the AUR user unit (packaging/systemd/ai-memory-user.service): one
-  # data dir owned by the server, the CLI and hooks are thin HTTP clients
-  # against loopback. --enable-web adds the read-only wiki browser there too.
-  systemd.user.services.ai-memory = {
-    Unit = {
-      Description = "ai-memory MCP server (user service)";
-      Documentation = "https://github.com/akitaonrails/ai-memory";
-    };
-    Service = {
-      Type = "simple";
-      ExecStart = "${aiMemory}/bin/ai-memory --data-dir %h/.local/share/ai-memory --config %h/.config/ai-memory/config.toml serve --transport http --enable-web";
-      # Optional: bearer token, LLM/embedding provider keys.
-      EnvironmentFile = "-%h/.config/ai-memory/env";
-      Restart = "on-failure";
-      RestartSec = "5s";
-      NoNewPrivileges = true;
-      PrivateTmp = true;
-    };
-    Install.WantedBy = [ "default.target" ];
-  };
 }
