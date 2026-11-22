@@ -38,10 +38,10 @@ Everything below is unrecoverable.
 ## 1. Create the filesystem (live ISO)
 
 ```bash
-parted /dev/nvme0n1 -- mklabel gpt
-parted /dev/nvme0n1 -- mkpart ESP fat32 1MiB 1GiB
-parted /dev/nvme0n1 -- set 1 esp on
-parted /dev/nvme0n1 -- mkpart primary btrfs 1GiB 100%
+parted -s /dev/nvme0n1 mklabel gpt
+parted -s /dev/nvme0n1 mkpart ESP fat32 1MiB 1GiB
+parted -s /dev/nvme0n1 set 1 esp on
+parted -s /dev/nvme0n1 mkpart primary btrfs 1GiB 100%
 
 mkfs.fat -F 32 -n boot /dev/nvme0n1p1
 mkfs.btrfs -L nixos /dev/nvme0n1p2
@@ -51,7 +51,7 @@ btrfs subvolume create /mnt/@{,home,nix,log}
 btrfs subvolume set-default "$(btrfs subvolume list /mnt | awk '$NF=="@"{print $2}')" /mnt
 umount /mnt
 
-O="compress=zstd:3,noatime,ssd,discard=async"
+O="compress=zstd:3,noatime"
 mount -o "$O,subvol=@"    /dev/nvme0n1p2 /mnt
 mkdir -p /mnt/{home,nix,var/log,boot}
 mount -o "$O,subvol=@home" /dev/nvme0n1p2 /mnt/home
@@ -70,8 +70,11 @@ nix-shell -p git --run \
 
 install -D -m600 /path/to/backup/keys.txt \
   /mnt/home/alsoasnerd/.config/sops/age/keys.txt
-chown -R 1000:100 /mnt/home/alsoasnerd
 ```
+
+The clone and the key are root-owned at this point; ownership is fixed in
+step 4, after the install has created the user accounts. sops-nix runs as root
+during `nixos-install`, so it can read the key regardless.
 
 In `/mnt/home/alsoasnerd/.config/nixos/modules/storage/filesys.nix`, replace:
 
@@ -96,11 +99,22 @@ make evaluation fail.
 ```bash
 nixos-install --root /mnt --no-root-passwd \
   --flake /mnt/home/alsoasnerd/.config/nixos#nixos
-nixos-enter --root /mnt -c 'passwd alsoasnerd'
+
+nixos-enter --root /mnt -c \
+  'chown -R alsoasnerd:users /home/alsoasnerd && passwd alsoasnerd'
 ```
 
-`--no-root-passwd` is fine because `alsoasnerd` is in `wheel`; the `passwd` call is
-needed because no password is declared for that user in the config.
+`nixos-install` runs the new system's activation inside `nixos-enter`
+(`switch-to-configuration boot`), which is why the sops key has to be in place
+before this step.
+
+`--no-root-passwd` is fine because `alsoasnerd` is in `wheel`; the `passwd` call
+is needed because no password is declared for that user in the config.
+
+The users have no explicit `uid`, so a fresh install assigns 1000 and up in
+alphabetical order: `alsoasnerd` stays 1000, but `dmyna`/`dummy`/`jiwolfsly`/
+`public` land on different numbers than today. Re-`chown` any restored data
+that was copied with numeric owners.
 
 ## 5. After first boot
 
@@ -109,3 +123,18 @@ needed because no password is declared for that user in the config.
 - `btrfs filesystem usage /` and `compression` check:
   `btrfs filesystem du -s /nix/store | tail -1` versus `du -sh /nix/store`.
 - Restore the backed-up data that is not managed by home-manager.
+
+### Optional: keep COW off where it hurts
+
+btrfs(5) applies `nodatacow`/`compress` filesystem-wide from the first mounted
+subvolume, so they cannot be set per subvolume; use the inode attribute instead,
+on an empty directory:
+
+```bash
+sudo chattr +C /var/lib/libvirt/images      # before the qcow2 files exist
+sudo chattr +C /var/lib/postgresql          # databases
+sudo chattr +C /var/lib/containers/storage  # podman overlay storage
+```
+
+Files created afterwards inherit the attribute; existing files keep COW, so run
+this before restoring the VM disk.
