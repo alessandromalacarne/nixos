@@ -77,7 +77,10 @@
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
-  boot.supportedFilesystems = [ "ntfs" ];
+  # Keep the ESP from filling with old kernel/initrd generations.
+  boot.loader.systemd-boot.configurationLimit = 10;
+  # btrfs also pulls in btrfs-progs for the root subvolumes.
+  boot.supportedFilesystems = [ "ntfs" "btrfs" ];
 
   services.gnome.gcr-ssh-agent.enable = false;
 

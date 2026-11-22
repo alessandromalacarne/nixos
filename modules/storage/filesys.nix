@@ -1,18 +1,54 @@
 { ... }:
-{
+let
+  # UUID of the btrfs partition that holds the root filesystem.
+  # Read it with `lsblk -f` in the live ISO after `mkfs.btrfs` and replace the
+  # placeholder before running `nixos-install`.
+  rootDevice = "/dev/disk/by-uuid/REPLACE-WITH-BTRFS-UUID";
 
-    fileSystems."/" = {
-	device = "/dev/disk/by-uuid/65bfbba0-1211-4142-b9ea-c729857c304a";
-	fsType = "ext4";
+  # Mount options shared by every subvolume of that partition.
+  btrfsOpts = [
+    "compress=zstd:3"
+    "noatime"
+    "ssd"
+    "discard=async"
+  ];
+
+  # Subvolumes keep /home, /nix and /var/log out of any future rollback of /
+  # and let each one carry its own mount policy.
+  subvolume = name: {
+    device = rootDevice;
+    fsType = "btrfs";
+    options = btrfsOpts ++ [ "subvol=${name}" ];
+  };
+in
+{
+  fileSystems = {
+    "/" = subvolume "@";
+    "/home" = subvolume "@home";
+    "/nix" = subvolume "@nix" // {
+      neededForBoot = true;
     };
-    fileSystems."/boot" = {
-	device = "/dev/disk/by-uuid/C68A-5DBE";
-	fsType = "vfat";
-	options = [ "fmask=0077" "dmask=0077" ];
+    "/var/log" = subvolume "@log" // {
+      neededForBoot = true;
     };
-    fileSystems."/tmp" = {
-	device = "tmpfs";
-	fsType = "tmpfs";
-	options = [ "size=8G" "mode=1777" ];
+
+    "/boot" = {
+      # EFI system partition UUID, also printed by `lsblk -f`.
+      device = "/dev/disk/by-uuid/REPLACE-WITH-ESP-UUID";
+      fsType = "vfat";
+      options = [ "fmask=0077" "dmask=0077" ];
     };
+    "/tmp" = {
+      device = "tmpfs";
+      fsType = "tmpfs";
+      options = [ "size=8G" "mode=1777" ];
+    };
+  };
+
+  # Surface checksum errors early instead of discovering them on read.
+  services.btrfs.autoScrub = {
+    enable = true;
+    interval = "weekly";
+    fileSystems = [ "/" ];
+  };
 }
