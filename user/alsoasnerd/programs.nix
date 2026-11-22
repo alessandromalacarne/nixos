@@ -1,12 +1,6 @@
-{ config, pkgs, ... }:
+{ config, pkgs, unstable, ... }:
 
 let
-  unstable = import <nixos-unstable> {
-    config = {
-      allowUnfree = true;
-    };
-  };
-
   # gh reads GH_TOKEN from its environment. A static session variable only
   # holds the script path, so wrap gh instead and resolve a fresh token on
   # every invocation. Falling back to the real gh keeps auth errors visible
