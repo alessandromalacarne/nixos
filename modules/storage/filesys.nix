@@ -5,16 +5,17 @@ let
   # placeholder before running `nixos-install`.
   rootDevice = "/dev/disk/by-uuid/REPLACE-WITH-BTRFS-UUID";
 
-  # Mount options shared by every subvolume of that partition.
+  # btrfs(5): most mount options are filesystem-wide and the first mounted
+  # subvolume wins, so compress/nodatacow must not differ between subvolumes.
+  # `ssd` is autodetected and `discard=async` is the default since Linux 6.2,
+  # so neither needs to be spelled out.
   btrfsOpts = [
     "compress=zstd:3"
     "noatime"
-    "ssd"
-    "discard=async"
   ];
 
-  # Subvolumes keep /home, /nix and /var/log out of any future rollback of /
-  # and let each one carry its own mount policy.
+  # Subvolumes exist for rollback granularity: a snapshot of @ leaves /home,
+  # /nix and /var/log untouched.
   subvolume = name: {
     device = rootDevice;
     fsType = "btrfs";
