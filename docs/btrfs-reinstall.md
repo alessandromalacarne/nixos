@@ -59,7 +59,7 @@ Everything on `nvme0n1` is destroyed from here on.
 parted -s /dev/nvme0n1 mklabel gpt
 parted -s /dev/nvme0n1 mkpart ESP fat32 1MiB 1GiB
 parted -s /dev/nvme0n1 set 1 esp on
-parted -s /dev/nvme0n1 mkpart primary btrfs 1GiB 100%
+parted -s /dev/nvme0n1 mkpart nixos btrfs 1GiB 100%
 
 mkfs.fat -F 32 -n boot /dev/nvme0n1p1
 mkfs.btrfs -L nixos /dev/nvme0n1p2
@@ -80,19 +80,26 @@ mount /dev/nvme0n1p1 /mnt/boot
 findmnt -R /mnt
 ```
 
+On GPT the word after `mkpart` is the partition **name**, not a type
+(`parted(8)`: *part-type may be specified only with msdos and dvh partition
+tables*), so `mkpart primary …` would only label the partition "primary".
+`nixos` and `ESP` are just names.
+
 ## 3. Clone the flake and put the sops key in place
 
 ```bash
 mkdir -p /backup && mount /dev/<backup-stick>1 /backup
 
 mkdir -p /mnt/home/alsoasnerd/.config
-nix-shell -p git --run \
-  'git clone -b develop https://github.com/alessandromalacarne/nixos.git \
-     /mnt/home/alsoasnerd/.config/nixos'
+git clone -b develop https://github.com/alessandromalacarne/nixos.git \
+  /mnt/home/alsoasnerd/.config/nixos
 
 install -D -m600 /backup/keys.txt \
   /mnt/home/alsoasnerd/.config/sops/age/keys.txt
 ```
+
+`git` is part of the installer image (`installation-cd-base.nix` sets
+`programs.git.enable`), so there is nothing to install first.
 
 The clone and the key are root-owned at this point; ownership is fixed in
 step 5, after the install has created the user accounts. sops-nix runs as root
@@ -109,20 +116,32 @@ sed -i "s|REPLACE-WITH-ESP-UUID|$(blkid -s UUID -o value /dev/nvme0n1p1)|" \
 grep by-uuid modules/storage/filesys.nix
 ```
 
-## 5. Regenerate the hardware module, install
+The tree is dirty after this edit, which is fine: `nix flake` copies the working
+tree of a dirty git repository, so the filled-in UUIDs are what gets built.
+
+## 5. Check the hardware module, install
+
+The repo's `hardware-configuration.nix` was generated on this machine and
+already has no `fileSystems` block — `modules/storage/filesys.nix` owns the
+mounts. Keep it that way. The manual is explicit that the generated file is
+overwritten by every `nixos-generate-config` run and "thus, you generally
+should not modify it", so treat the repo copy as the source of truth and do not
+copy the fresh one over it: that would reintroduce `fileSystems."/"` and
+`swapDevices`, which then conflict with `filesys.nix` (two definitions of `/`
+with different devices fail evaluation).
+
+Run the generator only to confirm the hardware has not changed:
 
 ```bash
 nixos-generate-config --root /mnt
-
-cp /mnt/etc/nixos/hardware-configuration.nix \
-   /mnt/home/alsoasnerd/.config/nixos/hardware-configuration.nix
+diff -u /mnt/home/alsoasnerd/.config/nixos/hardware-configuration.nix \
+        /mnt/etc/nixos/hardware-configuration.nix
 ```
 
-In that copy, delete the generated `fileSystems = { … };` block and the
-`swapDevices` line. `modules/storage/filesys.nix` owns the mounts; two
-definitions of `fileSystems."/"` with different devices fail evaluation. Keep
-`boot.initrd.availableKernelModules`, `boot.kernelModules`, `networking.useDHCP`,
-`nixpkgs.hostPlatform` and the microcode line.
+Port only genuine hardware differences (kernel modules, the microcode line)
+into the repo file. Ignore the generated `fileSystems` block and `swapDevices`;
+the btrfs kernel modules in the initrd come from `neededForBoot = true` on
+`/nix` and `/var/log`, not from the hardware module.
 
 ```bash
 nixos-install --root /mnt --no-root-passwd \
@@ -136,6 +155,10 @@ nixos-enter --root /mnt -c \
 (`switch-to-configuration boot`), which is why the sops key has to be in place
 before this step. `--no-root-passwd` is fine because `alsoasnerd` is in `wheel`;
 the `passwd` call is needed because no password is declared for that user.
+
+It also evaluates the flake in **pure** mode (no `--impure`), so the config
+must not read `NIX_PATH`: `<nixos-unstable>` and friends are invisible on the
+ISO. This repo imports `unstable` from the flake input instead.
 
 The users have no explicit `uid`, so a fresh install assigns 1000 and up in
 alphabetical order: `alsoasnerd` stays 1000, but `dmyna`/`dummy`/`jiwolfsly`/
@@ -153,8 +176,9 @@ Remove the stick. If the firmware does not offer the new entry, the ESP has
 ## 6. First boot
 
 - Log in as `alsoasnerd` with the password set in step 5.
-- `sudo nixos-rebuild switch --impure --flake .#nixos` (or `nh os switch`) to
-  confirm the flake evaluates from the new system.
+- `sudo nixos-rebuild switch --flake .#nixos` (or `nh os switch`) to confirm the
+  flake evaluates from the new system. No `--impure` needed — the flake
+  evaluates purely, which is what `nixos-install` already relied on.
 - `btrfs filesystem usage /` and a compression sanity check:
   `btrfs filesystem du -s /nix/store` versus `du -sh /nix/store`.
 - `sudo tailscale up` — the machine key is new, so the node re-registers.
