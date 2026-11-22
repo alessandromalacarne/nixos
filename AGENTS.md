@@ -12,16 +12,16 @@ find . -maxdepth 1 -name '*.nix' -print0 | xargs -0 -n1 nix-instantiate --parse 
 # Inspect flake outputs
 nix flake show --no-write-lock-file path:$(pwd)
 
-# Full flake evaluation checks (requires impure eval for /home imports)
-nix flake check --impure --no-write-lock-file path:$(pwd)
+# Full flake evaluation checks
+nix flake check --no-write-lock-file path:$(pwd)
 
 # Apply system configuration on host
-sudo nixos-rebuild switch --impure --flake .#nixos
+sudo nixos-rebuild switch --flake .#nixos
 ```
 
 Notes for Copilot sessions:
-- `nix flake check` in pure mode fails because `flake.nix` imports Home Manager files from absolute `/home/...` paths.
-- Even with `--impure`, evaluation can fail if the current user cannot read all imported `/home/*/.config/home-manager/home.nix` paths.
+- Evaluation is **pure**: no module may read `NIX_PATH` (`<nixos-unstable>`, `<nixpkgs>`, …). Take packages from the `unstable` / `inputs` specialArgs instead. `nixos-install --flake` and `nixos-rebuild --flake` build without `--impure`, so an impure config cannot be installed at all.
+- The commented-out `home-manager.users` entries in `flake.nix` import absolute `/home/...` paths; uncommenting them makes evaluation impure and environment-dependent.
 - No dedicated formatter/linter commands are defined in this repo.
 
 ## High-level architecture
