@@ -61,8 +61,6 @@
       ];
 
       builders-use-substitutes = true;
-
-      extra-sandbox-paths = [ "/var/cache/ccache" ];
     };
   };
 
