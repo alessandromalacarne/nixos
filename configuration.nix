@@ -22,6 +22,7 @@
     ./modules/hardware/virtualization.nix
     ./modules/hardware/bluetooth.nix
     ./modules/storage/filesys.nix
+    ./modules/storage/snapshots.nix
     ./modules/networking/networking.nix
     ./modules/services/servers.nix
     ./modules/services/ai-memory.nix
