@@ -25,6 +25,15 @@ level, not on `@`.
 No swap partition: `zramSwap` is enabled and hibernation is not configured. No
 LUKS, no snapper.
 
+Snapshots are taken by `btrbk` (`modules/storage/snapshots.nix`) hourly into
+`/.snapshots` and `/home/.snapshots`, kept 2 days plus 14 daily / 8 weekly / 6
+monthly. `@nix` and `@log` are separate subvolumes, so a snapshot of `@` leaves
+the store and the logs out, and no snapshot descends into another. The two
+directories are plain directories recreated by `systemd.tmpfiles`; the snapshots
+inside them do not survive a reinstall. To roll back, mount one read-only and
+copy out of it (or `btrfs subvolume snapshot` it back) — there is no default
+subvolume to flip, so `snapper rollback` is not available by design.
+
 ## 0. What you need at hand
 
 - The NixOS ISO on a stick (`dd if=nixos-*.iso of=/dev/sdX bs=4M
