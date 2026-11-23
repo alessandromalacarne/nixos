@@ -40,6 +40,10 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     niri-flake.url = "github:sodiboo/niri-flake";
+    disko = {
+      url = "github:nix-community/disko";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -164,6 +168,7 @@
           inputs.sops-nix.nixosModules.sops
           inputs.niri-flake.nixosModules.niri
           inputs.ai-memory.nixosModules.default
+          inputs.disko.nixosModules.disko
 
           {
             nixpkgs.config.allowUnfree = true;
